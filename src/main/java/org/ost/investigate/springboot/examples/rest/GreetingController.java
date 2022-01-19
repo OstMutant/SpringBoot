@@ -8,7 +8,9 @@ import reactor.core.publisher.Mono;
 @RestController
 @Slf4j
 public class GreetingController {
+
     @GetMapping("/greeting")
+//    @Timed("my.metric.name")
     public Mono<String> greeting() {
         log.info("Greetings from Spring Boot!");
         return Mono.just("Greetings from Spring Boot!");
