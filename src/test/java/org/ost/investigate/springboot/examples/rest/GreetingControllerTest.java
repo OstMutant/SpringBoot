@@ -12,13 +12,13 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest(GreetingController.class)
-public class GreetingControllerTest {
+class GreetingControllerTest {
 
     @Autowired
     WebTestClient webTestClient;
 
     @Test
-    public void testGreeting() {
+    void testGreeting() {
         webTestClient.get()
             .uri("/greeting")
             .accept(MediaType.APPLICATION_JSON)
