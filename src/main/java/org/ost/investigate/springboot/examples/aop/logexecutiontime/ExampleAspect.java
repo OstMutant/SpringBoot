@@ -1,4 +1,4 @@
-package org.ost.investigate.springboot.examples.aop;
+package org.ost.investigate.springboot.examples.aop.logexecutiontime;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+// https://www.baeldung.com/spring-aop-annotation
 @Aspect
 @Component
 @Slf4j

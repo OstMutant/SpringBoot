@@ -4,9 +4,9 @@ import lombok.Builder;
 import lombok.ToString;
 import org.springframework.data.redis.core.RedisHash;
 
-@RedisHash("RedisMessage")
 @Builder
 @ToString
+@RedisHash("RedisMessage")
 public class RedisMessage {
     private String id;
 

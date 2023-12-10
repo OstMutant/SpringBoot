@@ -1,10 +1,9 @@
 package org.ost.investigate.springboot.examples.rest;
 
 import io.micrometer.core.annotation.Timed;
-import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.ost.investigate.springboot.examples.aop.LogExecutionTime;
+import org.ost.investigate.springboot.examples.aop.logexecutiontime.LogExecutionTime;
 import org.ost.investigate.springboot.examples.redis.model.RedisMessage;
 import org.ost.investigate.springboot.examples.redis.repo.RedisMessageRepository;
 import org.springframework.web.bind.annotation.GetMapping;
