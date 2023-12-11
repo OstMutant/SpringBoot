@@ -4,6 +4,8 @@ import io.micrometer.core.annotation.Timed;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.ost.investigate.springboot.examples.aop.logexecutiontime.LogExecutionTime;
+import org.ost.investigate.springboot.examples.jpa.model.H2Message;
+import org.ost.investigate.springboot.examples.jpa.repo.H2MessageRepository;
 import org.ost.investigate.springboot.examples.redis.model.RedisMessage;
 import org.ost.investigate.springboot.examples.redis.repo.RedisMessageRepository;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class GreetingController {
     private final RedisMessageRepository redisMessageRepository;
+//    private final H2MessageRepository h2MessageRepository;
 
     @GetMapping("/greeting")
     @LogExecutionTime
@@ -23,6 +26,8 @@ public class GreetingController {
         log.info("Greetings from Spring Boot!");
         redisMessageRepository.findAll().forEach(v->log.info("-redis keys-" + v));
         redisMessageRepository.save(RedisMessage.builder().id("testId").message("Greetings from Spring Boot!").build());
+//        h2MessageRepository.findAll().forEach(v->log.info("-H2 rows-" + v));
+//        h2MessageRepository.save(H2Message.builder().id("testId").message("Greetings from Spring Boot!").build());
         return Mono.just("Greetings from Spring Boot!");
     }
 }
