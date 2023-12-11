@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 public class GreetingController {
     private final RedisMessageRepository redisMessageRepository;
-//    private final H2MessageRepository h2MessageRepository;
+    private final H2MessageRepository h2MessageRepository;
 
     @GetMapping("/greeting")
     @LogExecutionTime
@@ -26,8 +26,8 @@ public class GreetingController {
         log.info("Greetings from Spring Boot!");
         redisMessageRepository.findAll().forEach(v->log.info("-redis keys-" + v));
         redisMessageRepository.save(RedisMessage.builder().id("testId").message("Greetings from Spring Boot!").build());
-//        h2MessageRepository.findAll().forEach(v->log.info("-H2 rows-" + v));
-//        h2MessageRepository.save(H2Message.builder().id("testId").message("Greetings from Spring Boot!").build());
+        h2MessageRepository.findAll().forEach(v->log.info("-H2 rows-" + v));
+        h2MessageRepository.save(H2Message.builder().message("Greetings from Spring Boot!").build());
         return Mono.just("Greetings from Spring Boot!");
     }
 }

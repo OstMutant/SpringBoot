@@ -8,7 +8,7 @@ import org.springframework.data.redis.repository.configuration.EnableRedisReposi
 
 // https://www.baeldung.com/spring-data-redis-tutorial
 @Configuration
-//@EnableRedisRepositories(basePackages = "org.ost.investigate.springboot.examples.redis")
+@EnableRedisRepositories(basePackages = "org.ost.investigate.springboot.examples.redis.repo")
 public class Redis {
 
     @Bean
