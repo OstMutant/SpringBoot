@@ -1,10 +1,12 @@
 package org.ost.investigate.springboot.examples.redis.model;
 
 import lombok.Builder;
+import lombok.Getter;
 import lombok.ToString;
 import org.springframework.data.redis.core.RedisHash;
 
 @Builder
+@Getter
 @ToString
 @RedisHash("RedisMessage")
 public class RedisMessage {
