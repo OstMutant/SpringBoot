@@ -1,0 +1,73 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Include Bootstrap -->
+  <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap/dist/css/bootstrap.min.css"/>
+  <link type="text/css" rel="stylesheet" href="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.css"/>
+</head>
+<body>
+<div class="container-fluid">
+  <div id="contents-main">
+    <div class="lead">
+      <strong>Name of Event:</strong>
+      <span th:text="${eventName}"></span>
+    </div>
+    <div id="contents">
+      <button @click="messages.reload()">
+        Reload
+      </button>
+      <span style="display: none;" v-show="messages.loading">Loading...</span>
+      <ul v-if="messages.data">
+        <li style="list-style-type:none" v-for="item in messages.data">
+          <message-card
+              v-bind:message="item" v-bind:key="item.id">
+          </message-card>
+        </li>
+      </ul>
+      <span style="display: none;" v-show="messages.error">Error: {{ messages.status }} {{ messages.error }}</span>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/axios@1.1.2/dist/axios.min.js"></script>
+<script src="https://unpkg.com/vue-chimera@^3.0.0/dist/vue-chimera.min.js"></script>
+<script src="https://unpkg.com/bootstrap-vue@latest/dist/bootstrap-vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
+<script type="text/babel">
+
+  Vue.use(BootstrapVue);
+  Vue.use(VueChimera)
+  Vue.component('message-card', {
+      props: ['message'],
+      template: `<div class="card">
+                  <div class="card-body">
+                      <h6 class="card-title">
+                          {{ message.id }} - {{ message.message }}
+                      </h6>
+                  </div>
+              </div>`
+  });
+
+  var app = new Vue({
+      el: '#contents',
+      chimera: {
+        messages: {
+          url: '/messages'
+        }
+      },
+      data() {
+        return {
+        }
+      },
+      mounted() {
+        console.log("mounted")
+      }
+  });
+
+</script>
+</body>
+</html>

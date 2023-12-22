@@ -12,5 +12,6 @@ import lombok.extern.jackson.Jacksonized;
 @EqualsAndHashCode
 @ToString
 public class GreetingOutgoingMessage {
+    private Long id;
     private String message;
 }
