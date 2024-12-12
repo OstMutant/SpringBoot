@@ -13,9 +13,10 @@ public class GreetingController {
 
     @GetMapping("/greeting")
     @LogExecutionTime
-    @Timed(value = "api.greeting.timer", description = "Time taken to process my API endpoint")
+    @Timed(value = "api.greeting.timer", description = "Time taken to process 'greeting' API endpoint")
     public Mono<String> greeting() {
         log.info("Greetings from Spring Boot!");
         return Mono.just("Greetings from Spring Boot!");
     }
+
 }
