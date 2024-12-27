@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset = "ISO-8859-1" />
+  <meta charset="utf-8">
+  <meta content="IE=edge" http-equiv="X-UA-Compatible">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
   <link href = "css/styles.css" rel = "stylesheet"/>
   <title>Spring Boot Application</title>
 </head>
 <body>
-<h4>Welcome to Thymeleaf Spring Boot web application</h4>
+<h4 data-th-text="'Hello, ' + ${name} + '!'">Hello, World!</h4>
+
 <div id="events"></div>
 <script th:src="@{/js/scripts.js}"></script>
+
+<h4 data-th-text="'Hello, ' + ${name} + '!'">Hello, World!</h4>
+
+<table>
+  <tbody>
+  <tr data-th-each="item : ${data}">
+    <td>[[${item.seq}]]</td>
+    <td>[[${item.timestamp}]]</td>
+  </tr>
+  </tbody>
+</table>
+
+<h4 data-th-text="'Hello, ' + ${name} + '!'">Hello, World!</h4>
+
 </body>
 </html>
