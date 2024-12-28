@@ -16,8 +16,14 @@ public class WebController {
     public String index(Model model) {
         model.addAttribute("name", "Ost");
         model.addAttribute("data", new ReactiveDataDriverContextVariable(getPayload(), 2));
-
         return "index";
+    }
+
+    @GetMapping(value = "/table")
+    public String table(Model model) {
+        model.addAttribute("data", new ReactiveDataDriverContextVariable(getPayload(), 2));
+
+        return "fragments/table";
     }
 
     private Flux<Item> getPayload() {

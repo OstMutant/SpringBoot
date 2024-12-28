@@ -1,5 +1,6 @@
 package org.ost.investigate.springboot.examples.rest;
 
+import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE;
 
 import io.micrometer.core.annotation.Timed;
@@ -31,7 +32,17 @@ public class SSEStreamController {
             .concatWith(Mono.just(close));
     }
 
-    private Flux<ServerSentEvent<Object>>  getPayload(){
+    @GetMapping(value = "/stream-json", produces = APPLICATION_NDJSON_VALUE)
+    @LogExecutionTime
+    @Timed(value = "api.stream-json.timer", description = "Time taken to process 'stream-sse' API endpoint")
+    public Flux<Data> serverJSONStream() {
+        log.info("Server JSON Stream from Spring Boot!");
+        return Flux.interval(Duration.ofSeconds(1))
+            .take(5)
+            .map(i -> new Data(i, Instant.now()));
+    }
+
+    private Flux<ServerSentEvent<Object>> getPayload() {
         return Flux.interval(Duration.ofSeconds(1))
             .take(5)
             .map(sequence -> ServerSentEvent.builder()
