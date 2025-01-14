@@ -1,31 +1,49 @@
-  var eventSource = new EventSource("/stream-sse");
-  var dataElement = document.getElementById("events");
+$(document).ready(function() {
+  var $loadButton = $('#loadButton');
+  var $buttonText = $('.button-text');
+  var $tableBody = $('tbody');
+  var $filterSeqNo = $('#filterSeqNo');
+  var $filterTimestamp = $('#filterTimestamp');
 
-  eventSource.onopen = function() {
-    var element = document.createElement("div");
-    element.innerHTML = 'Connection is opened.';
-    dataElement.appendChild(element);
-  };
+  function startLoading() {
+    $loadButton.text('Loading...').prop('disabled', true);
+    $tableBody.empty();
+  }
 
-  // Listening to the default "message" event
-  eventSource.addEventListener('message', function(event) {
-    var element = document.createElement("div");
-    const jsonEvent = JSON.parse(event.data);
-    element.innerHTML = "Message: " + JSON.stringify(jsonEvent);
-    dataElement.appendChild(element);
+  function stopLoading() {
+    $loadButton.text('Load').prop('disabled', false);
+  }
+
+  $loadButton.on('click', function() {
+    startLoading();
+    var filter = {
+      seqNo: $filterSeqNo.val() ? parseInt($filterSeqNo.val()) : null,
+      timestamp: $filterTimestamp.val() ? new Date($filterTimestamp.val()).toISOString() : null
+    };
+
+    oboe({
+      url: '/stream-json',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(filter)
+    })
+      .start(function() {
+      startLoading();
+    })
+      .node('!', function(record) {
+      if (record.seqNo == -1) {
+        stopLoading();
+        console.log('End of stream reached');
+      } else {
+        $('tbody').append('<tr><td>' + record.seqNo + '</td><td>' + record.timestamp.toLocaleString() + '</td></tr>');
+      }
+      return oboe.drop;
+    })
+      .fail(function(error) {
+      console.error('Stream failed: ', error);
+      stopLoading();
+    });
   });
-
-  // Handling errors
-  eventSource.addEventListener('error', function(error) {
-    var element = document.createElement("div");
-    element.innerHTML = 'Error:' + error.data;
-    dataElement.appendChild(element);
-  });
-
-  // Handling close
-  eventSource.addEventListener('close', function(error) {
-    var element = document.createElement("div");
-    element.innerHTML = 'Connection is closed.';
-    eventSource.close();
-    dataElement.appendChild(element);
-  });
+});

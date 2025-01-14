@@ -5,9 +5,10 @@
   <meta content="IE=edge" http-equiv="X-UA-Compatible">
   <meta content="width=device-width, initial-scale=1" name="viewport">
   <link data-th-href="@{/css/bootstrap.min.css}" rel="stylesheet">
-  <link data-th-href="@{/css/styles.css}" rel = "stylesheet"/>
+  <link data-th-href="@{/css/styles.css}" rel="stylesheet"/>
   <script data-th-src="@{/js/jquery.min.js}"></script>
   <script data-th-src="@{/js/oboe-browser.min.js}"></script>
+  <script data-th-src="@{/js/scripts.js}"></script>
   <title>Spring Boot Application</title>
 </head>
 <body>
@@ -15,56 +16,23 @@
 
 <h4>JSON stream uses js!</h4>
 
-<div id="stream"></div>
-<script data-th-inline="javascript">
-  /*<![CDATA[*/
-oboe('/stream-json')
-   .node('!.*', function( record ) {
-    var dataElement = document.getElementById("stream");
-    var element = document.createElement("div");
-    element.innerHTML = "Message: " + record;
-    dataElement.appendChild(element);
+<input type="text" id="filterSeqNo" placeholder="Filter by index (seqNo)">
+<input type="datetime-local" id="filterTimestamp" placeholder="Filter by timestamp">
 
-   })
-   .done(function(things) {
-     var dataElement = document.getElementById("stream");
-    var element = document.createElement("div");
-    element.innerHTML = 'Done.' + JSON.stringify(things);
-    dataElement.appendChild(element);
-   });
-  /*]]>*/
-</script>
+<button id="loadButton" class="btn btn-primary">Load</button>
 
-<h4>SSE uses js!</h4>
-
-<div id="events"></div>
-<script data-th-src="@{/js/scripts.js}"></script>
-
-<h4>New template is added dynamically!</h4>
-
-<div id="table">
-  Loading...
+<div class="table-responsive">
+  <table class="table">
+    <thead>
+    <tr>
+      <th scope="col">seqNo</th>
+      <th scope="col">timestamp</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
 </div>
-<script data-th-inline="javascript">
-  /*<![CDATA[*/
-  fetch('/table')
-      .then(response => response.text())
-      .then(html => {
-          document.getElementById('table').innerHTML = html;
-      });
-  /*]]>*/
-</script>
-
-<h4>Reactive items is added dynamically!</h4>
-
-<table>
-  <tbody>
-  <tr data-th-each="item : ${data}">
-    <td>[[${item.seq}]]</td>
-    <td>[[${item.timestamp}]]</td>
-  </tr>
-  </tbody>
-</table>
 
 <h4>Finish!</h4>
 

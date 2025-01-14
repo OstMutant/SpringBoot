@@ -1,3 +1,14 @@
 h4 {
-   color: red;
+  color: red;
+}
+
+.table-responsive {
+  height: 400px;  /* Фіксована висота контейнера */
+  width: 600px;   /* Статична ширина контейнера */
+  overflow-y: auto;   /* Прокрутка по вертикалі */
+  overflow-x: auto;   /* Прокрутка по горизонталі */
+}
+
+.table {
+  width: 98%;
 }
