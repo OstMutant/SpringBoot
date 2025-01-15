@@ -22,7 +22,7 @@ public class NDJSONStreamController {
     @PostMapping(value = "/stream-json", produces = APPLICATION_NDJSON_VALUE)
     @LogExecutionTime
     @Timed(value = "api.stream-json.timer", description = "Time taken to process 'stream-sse' API endpoint")
-    public Flux<Data> serverJSONStream(@RequestBody Filter filter) {
+    public Flux<Wrap> serverJSONStream(@RequestBody Filter filter) {
         log.info("Server JSON Stream from Spring Boot!");
 
         return Flux.interval(Duration.ofMillis(500))
@@ -30,7 +30,13 @@ public class NDJSONStreamController {
             .map(i -> new Data(i, Instant.now()))
             .filter(data -> filter.getSeqNo() == null || data.seqNo == filter.getSeqNo())
             .filter(data -> filter.getTimestamp() == null || data.timestamp.equals(filter.getTimestamp()))
-            .concatWithValues(new Data(-1, Instant.now()));
+            .map(Object.class::cast)
+            .map(v-> new Wrap("data", v))
+            .concatWithValues(new Wrap("done", null));
+    }
+
+
+    public record Wrap(String type, Object value) {
     }
 
     public record Data(long seqNo, Instant timestamp) {

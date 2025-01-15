@@ -33,11 +33,12 @@ $(document).ready(function() {
       startLoading();
     })
       .node('!', function(record) {
-      if (record.seqNo == -1) {
+      if (record.type == 'data') {
+        var value = record.value;
+        $('tbody').append('<tr><td>' + value.seqNo + '</td><td>' + value.timestamp.toLocaleString() + '</td></tr>');
+      } else if (record.type == 'done') {
         stopLoading();
         console.log('End of stream reached');
-      } else {
-        $('tbody').append('<tr><td>' + record.seqNo + '</td><td>' + record.timestamp.toLocaleString() + '</td></tr>');
       }
       return oboe.drop;
     })
