@@ -3,10 +3,10 @@ h4 {
 }
 
 .table-responsive {
-  height: 400px;  /* Фіксована висота контейнера */
-  width: 600px;   /* Статична ширина контейнера */
-  overflow-y: auto;   /* Прокрутка по вертикалі */
-  overflow-x: auto;   /* Прокрутка по горизонталі */
+  height: 400px;  /* Fixed height of the container */
+  width: 600px;   /* Static width of the container */
+  overflow-y: auto;   /* Vertical scrolling */
+  overflow-x: auto;   /* Horizontal scrolling */
 }
 
 .table {

@@ -1,9 +1,14 @@
 $(document).ready(function() {
+  // DOM Elements
   var $loadButton = $('#loadButton');
-  var $buttonText = $('.button-text');
+  var $addButton = $('#addButton');
   var $tableBody = $('tbody');
-  var $filterId = $('#filterId');
+  var $startId = $('#startId');
+  var $endId = $('#endId');
+  var $name = $('#name');
+  var $nameError = $('#nameError');
 
+  // Functions
   function startLoading() {
     $loadButton.text('Loading...').prop('disabled', true);
     $tableBody.empty();
@@ -13,10 +18,11 @@ $(document).ready(function() {
     $loadButton.text('Load').prop('disabled', false);
   }
 
-  $loadButton.on('click', function() {
+  function loadUsers() {
     startLoading();
     var filter = {
-      id: $filterId.val() ? parseInt($filterId.val()) : null
+      startId: $startId.val() ? parseInt($startId.val()) : null,
+      endId: $endId.val() ? parseInt($endId.val()) : null
     };
 
     oboe({
@@ -44,5 +50,50 @@ $(document).ready(function() {
       console.error('Stream failed: ', error);
       stopLoading();
     });
+  }
+
+  function addUser() {
+    var userName = $name.val().trim();
+
+    if (!userName) {
+      $name.addClass('is-invalid');
+      $nameError.show();
+      return;
+    }
+
+    $name.removeClass('is-invalid');
+    $nameError.hide();
+
+    var newUser = {
+      name: userName
+    };
+
+    $.ajax({
+      url: '/users',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(newUser),
+      success: function(response) {
+        $name.val('');
+        loadUsers(); // Reload the table after adding a new user
+      },
+      error: function(error) {
+        console.error('Failed to add user: ', error.responseText);
+      }
+    });
+  }
+
+  // Event Handlers
+  $loadButton.on('click', loadUsers);
+  $addButton.on('click', addUser);
+
+  $name.on('input', function() {
+    if ($name.val().trim()) {
+      $name.removeClass('is-invalid');
+      $nameError.hide();
+    } else {
+      $name.addClass('is-invalid');
+      $nameError.show();
+    }
   });
 });

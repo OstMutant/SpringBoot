@@ -15,9 +15,15 @@
 <h4>Hello, [[${name}]]!</h4>
 
 <h4>JSON stream uses js!</h4>
-
-<input type="text" id="filterId" placeholder="Filter by Id">
-
+<div class="mb-3">
+  <label for="name" class="form-label">Enter name</label>
+  <input type="text" id="name" class="form-control" placeholder="Enter name" required>
+  <div id="nameError" class="invalid-feedback">Name cannot be empty.</div>
+</div>
+<button id="addButton" class="btn btn-success">Add</button>
+<br/>
+<input type="text" id="startId" placeholder="Start ID">
+<input type="text" id="endId" placeholder="End ID">
 <button id="loadButton" class="btn btn-primary">Load</button>
 
 <div class="table-responsive">

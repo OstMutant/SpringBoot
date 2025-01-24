@@ -72,7 +72,7 @@ public class UserController {
 
         return userRepository.findAll()
             .delayElements(Duration.ofMillis(500))
-            .filter(user -> filter.getId() == null || Objects.equals(user.getId(), filter.getId()))
+            .filter(user -> (filter.getStartId() == null || user.getId() >= filter.getStartId()) && (filter.getEndId() == null || user.getId() <= filter.getEndId()))
             .map(Object.class::cast)
             .map(v-> new Wrap("data", v))
             .concatWithValues(new Wrap("done", null));
@@ -85,6 +85,7 @@ public class UserController {
     @Getter
     @Setter
     public static class Filter {
-        private Long id;
+        private Long startId;
+        private Long endId;
     }
 }
