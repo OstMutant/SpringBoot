@@ -71,7 +71,7 @@ public class UserController {
         log.info("Server JSON Stream from Spring Boot!");
 
         return userRepository.findAll()
-            .delayElements(Duration.ofMillis(500))
+//            .delayElements(Duration.ofMillis(500))
             .filter(user -> (filter.getStartId() == null || user.getId() >= filter.getStartId()) && (filter.getEndId() == null || user.getId() <= filter.getEndId()))
             .map(Object.class::cast)
             .map(v-> new Wrap("data", v))

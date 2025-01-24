@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html data-th-fragment="modal">
+<head>
+  <meta charset="UTF-8">
+  <title>Modal Add User</title>
+</head>
+<body>
+<!-- Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add User</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label for="modalName" class="form-label">Enter name</label>
+          <input type="text" id="modalName" class="form-control" placeholder="Enter name" required>
+          <div id="modalNameError" class="invalid-feedback">Name cannot be empty.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" id="addButton" class="btn btn-primary">Add User</button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

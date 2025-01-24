@@ -8,20 +8,23 @@
   <link data-th-href="@{/css/styles.css}" rel="stylesheet"/>
   <script data-th-src="@{/js/jquery.min.js}"></script>
   <script data-th-src="@{/js/oboe-browser.min.js}"></script>
-  <script data-th-src="@{/js/scripts.js}"></script>
+  <script data-th-src="@{/js/bootstrap.min.js}"></script>
+  <script data-th-src="@{/js/popper.min.js}"></script>
+  <script data-th-src="@{/js/custom/index.js}"></script>
+  <script data-th-src="@{/js/custom/modal.js}"></script>
   <title>Spring Boot Application</title>
 </head>
 <body>
 <h4>Hello, [[${name}]]!</h4>
 
 <h4>JSON stream uses js!</h4>
-<div class="mb-3">
-  <label for="name" class="form-label">Enter name</label>
-  <input type="text" id="name" class="form-control" placeholder="Enter name" required>
-  <div id="nameError" class="invalid-feedback">Name cannot be empty.</div>
-</div>
-<button id="addButton" class="btn btn-success">Add</button>
+<button id="triggerButton" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+  Add
+</button>
+<!-- Include the modal template -->
+<div data-th-include="fragments/modal :: modal"></div>
 <br/>
+
 <input type="text" id="startId" placeholder="Start ID">
 <input type="text" id="endId" placeholder="End ID">
 <button id="loadButton" class="btn btn-primary">Load</button>
@@ -42,6 +45,5 @@
 </div>
 
 <h4>Finish!</h4>
-
 </body>
 </html>
