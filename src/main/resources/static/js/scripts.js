@@ -2,8 +2,7 @@ $(document).ready(function() {
   var $loadButton = $('#loadButton');
   var $buttonText = $('.button-text');
   var $tableBody = $('tbody');
-  var $filterSeqNo = $('#filterSeqNo');
-  var $filterTimestamp = $('#filterTimestamp');
+  var $filterId = $('#filterId');
 
   function startLoading() {
     $loadButton.text('Loading...').prop('disabled', true);
@@ -17,12 +16,11 @@ $(document).ready(function() {
   $loadButton.on('click', function() {
     startLoading();
     var filter = {
-      seqNo: $filterSeqNo.val() ? parseInt($filterSeqNo.val()) : null,
-      timestamp: $filterTimestamp.val() ? new Date($filterTimestamp.val()).toISOString() : null
+      id: $filterId.val() ? parseInt($filterId.val()) : null
     };
 
     oboe({
-      url: '/stream-json',
+      url: '/users/filter',
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -35,7 +33,7 @@ $(document).ready(function() {
       .node('!', function(record) {
       if (record.type == 'data') {
         var value = record.value;
-        $('tbody').append('<tr><td>' + value.seqNo + '</td><td>' + value.timestamp.toLocaleString() + '</td></tr>');
+        $('tbody').append('<tr><td>' + value.id + '</td><td>' + value.name + '</td><td>' + value.createdAt.toLocaleString() + '</td><td>' + value.updatedAt.toLocaleString() + '</td></tr>');
       } else if (record.type == 'done') {
         stopLoading();
         console.log('End of stream reached');

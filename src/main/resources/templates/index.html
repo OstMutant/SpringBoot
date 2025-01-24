@@ -16,8 +16,7 @@
 
 <h4>JSON stream uses js!</h4>
 
-<input type="text" id="filterSeqNo" placeholder="Filter by index (seqNo)">
-<input type="datetime-local" id="filterTimestamp" placeholder="Filter by timestamp">
+<input type="text" id="filterId" placeholder="Filter by Id">
 
 <button id="loadButton" class="btn btn-primary">Load</button>
 
@@ -25,8 +24,10 @@
   <table class="table">
     <thead>
     <tr>
-      <th scope="col">seqNo</th>
-      <th scope="col">timestamp</th>
+      <th scope="col">Id</th>
+      <th scope="col">Name</th>
+      <th scope="col">Created At</th>
+      <th scope="col">Updated At</th>
     </tr>
     </thead>
     <tbody>
