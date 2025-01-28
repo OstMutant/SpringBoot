@@ -1,5 +1,4 @@
 package org.ost.investigate.springboot.examples.rest;
-
 import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 
 import io.micrometer.core.annotation.Timed;
@@ -100,6 +99,18 @@ public class UserController {
     }
 
     /**
+     * Get a user.
+     *
+     * @param id User ID
+     * @return Mono<User>
+     */
+    @GetMapping("/{id}")
+    public Mono<User> getUser(@PathVariable Long id) {
+        log.info("Get user with ID: {}", id);
+        return userRepository.findById(id);
+    }
+
+    /**
      * Filter users by ID range and UpdatedAt in descending order.
      *
      * @param filter Filter object containing startId and endId
@@ -135,3 +146,4 @@ public class UserController {
         private Long endId;
     }
 }
+

@@ -18,10 +18,10 @@
 <h4>Hello, [[${name}]]!</h4>
 
 <h4>JSON stream uses js!</h4>
-<button id="triggerButton" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addUserModal">
+<button id="triggerButton" type="button" class="btn btn-success" data-bs-toggle="modal">
   Add
 </button>
-<!-- Include the modal template -->
+<!-- Include the combined modal template -->
 <div data-th-include="fragments/modal :: modal"></div>
 <br/>
 
@@ -37,6 +37,7 @@
       <th scope="col">Name</th>
       <th scope="col">Created At</th>
       <th scope="col">Updated At</th>
+      <th scope="col">Actions</th> <!-- Add Actions column -->
     </tr>
     </thead>
     <tbody>

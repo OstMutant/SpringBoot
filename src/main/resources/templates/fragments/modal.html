@@ -2,15 +2,15 @@
 <html data-th-fragment="modal">
 <head>
   <meta charset="UTF-8">
-  <title>Modal Add User</title>
+  <title>User Modal</title>
 </head>
 <body>
-<!-- Modal -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<!-- Combined Modal for Add/Edit User -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">Add User</h5>
+        <h5 class="modal-title" id="userModalLabel">Add User</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
@@ -22,7 +22,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" id="addButton" class="btn btn-primary">Add User</button>
+        <button type="button" id="saveButton" class="btn btn-primary">Save</button>
       </div>
     </div>
   </div>
