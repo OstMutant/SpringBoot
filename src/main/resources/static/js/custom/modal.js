@@ -2,7 +2,6 @@ $(document).ready(function() {
   var $addButton = $('#addButton');
   var $modalName = $('#modalName');
   var $modalNameError = $('#modalNameError');
-  var $triggerButton = $('#triggerButton');
 
   function showError(inputElement, errorElement, message) {
     inputElement.addClass('is-invalid');
@@ -37,7 +36,6 @@ $(document).ready(function() {
 
         var event = new CustomEvent('userAdded', { detail: newUser });
         document.dispatchEvent(event);
-        $triggerButton.focus();
       },
       error: function(error) {
         console.error('Failed to add user: ', error.responseText);

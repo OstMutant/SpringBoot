@@ -35,46 +35,92 @@ public class UserController {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Get all users.
+     *
+     * @return Flux<User> stream of users
+     */
     @GetMapping
     public Flux<User> getAllUsers() {
-        return userRepository.findAll();
+        log.info("Fetching all users");
+        return userRepository.findAll()
+            .doOnError(e -> log.error("Error fetching users", e));
     }
 
+    /**
+     * Create a new user.
+     *
+     * @param user User object
+     * @return Mono<User> created user
+     */
     @PostMapping
     public Mono<User> createUser(@RequestBody User user) {
-        if (Objects.isNull(user.getCreatedAt())){
+        log.info("Creating new user: {}", user.getName());
+        if (Objects.isNull(user.getCreatedAt())) {
             user.setCreatedAt(LocalDateTime.now());
         }
         user.setUpdatedAt(LocalDateTime.now());
-        return userRepository.save(user);
+        return userRepository.save(user)
+            .doOnSuccess(u -> log.info("User created: {}", u.getId()))
+            .doOnError(e -> log.error("Error creating user", e));
     }
 
+    /**
+     * Update an existing user.
+     *
+     * @param id   User ID
+     * @param user User object
+     * @return Mono<User> updated user
+     */
     @PutMapping("/{id}")
     public Mono<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        log.info("Updating user with ID: {}", id);
         return userRepository.findById(id)
             .flatMap(existingUser -> {
                 existingUser.setName(user.getName());
                 existingUser.setUpdatedAt(LocalDateTime.now());
                 return userRepository.save(existingUser);
-            });
+            })
+            .doOnSuccess(u -> log.info("User updated: {}", u.getId()))
+            .doOnError(e -> log.error("Error updating user", e));
     }
 
+    /**
+     * Delete a user.
+     *
+     * @param id User ID
+     * @return Mono<Void>
+     */
     @DeleteMapping("/{id}")
     public Mono<Void> deleteUser(@PathVariable Long id) {
-        return userRepository.deleteById(id);
+        log.info("Deleting user with ID: {}", id);
+        return userRepository.deleteById(id)
+            .doOnSuccess(unused -> log.info("User deleted: {}", id))
+            .doOnError(e -> log.error("Error deleting user", e));
     }
 
+    /**
+     * Filter users by ID range and UpdatedAt in descending order.
+     *
+     * @param filter Filter object containing startId and endId
+     * @return Flux<Wrap> wrapped stream of users
+     */
     @PostMapping(value = "/filter", produces = APPLICATION_NDJSON_VALUE)
     @LogExecutionTime
     @Timed(value = "api.stream-json.timer", description = "Time taken to process 'stream' API endpoint")
     public Flux<Wrap> getUsersByFilter(@RequestBody Filter filter) {
         log.info("Server JSON Stream from Spring Boot!");
 
-        return userRepository.findAll()
-//            .delayElements(Duration.ofMillis(500))
-            .filter(user -> (filter.getStartId() == null || user.getId() >= filter.getStartId()) && (filter.getEndId() == null || user.getId() <= filter.getEndId()))
+        Flux<User> filteredUsers = (filter.getStartId() == null && filter.getEndId() == null)
+            ? userRepository.findAllByOrderByUpdatedAtDesc()
+            : userRepository.findByIdBetweenOrderByUpdatedAtDesc(
+                Objects.nonNull(filter.getStartId()) ? filter.getStartId() : Long.MIN_VALUE,
+                Objects.nonNull(filter.getEndId()) ? filter.getEndId() : Long.MAX_VALUE);
+
+        return filteredUsers
+            .delayElements(Duration.ofMillis(500))
             .map(Object.class::cast)
-            .map(v-> new Wrap("data", v))
+            .map(v -> new Wrap("data", v))
             .concatWithValues(new Wrap("done", null));
     }
 
