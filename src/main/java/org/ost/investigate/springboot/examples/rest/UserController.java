@@ -1,10 +1,12 @@
 package org.ost.investigate.springboot.examples.rest;
+import static org.springframework.data.domain.PageRequest.of;
 import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 
 import io.micrometer.core.annotation.Timed;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.ost.investigate.springboot.examples.aop.LogExecutionTime;
 import org.ost.investigate.springboot.examples.entyties.User;
 import org.ost.investigate.springboot.examples.repository.UserRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -26,32 +31,32 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/users")
 @Slf4j
+@AllArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
 
-    public UserController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    @GetMapping(produces = APPLICATION_NDJSON_VALUE)
+    public Flux<Wrap> getUsers(@RequestParam(defaultValue = "-1") long startId,
+        @RequestParam(defaultValue = "-1") long endId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(defaultValue = "updatedAt") String sortField) {
+        log.info("Fetching users");
 
-    /**
-     * Get all users.
-     *
-     * @return Flux<User> stream of users
-     */
-    @GetMapping
-    public Flux<User> getAllUsers() {
-        log.info("Fetching all users");
-        return userRepository.findAll()
+        Pageable pageable = of(page, size, Sort.by(sortField).descending());
+
+        startId = startId > 0 ? startId : 0L;
+        endId = Math.max(endId > 0 ? endId : Long.MAX_VALUE, startId);
+
+        return userRepository.findByIdBetween(startId, endId, pageable)
+            .delayElements(Duration.ofMillis(500))
+            .map(Object.class::cast)
+            .map(v -> new Wrap("data", v))
+            .concatWithValues(new Wrap("done", null))
             .doOnError(e -> log.error("Error fetching users", e));
     }
 
-    /**
-     * Create a new user.
-     *
-     * @param user User object
-     * @return Mono<User> created user
-     */
     @PostMapping
     public Mono<User> createUser(@RequestBody User user) {
         log.info("Creating new user: {}", user.getName());
@@ -64,13 +69,6 @@ public class UserController {
             .doOnError(e -> log.error("Error creating user", e));
     }
 
-    /**
-     * Update an existing user.
-     *
-     * @param id   User ID
-     * @param user User object
-     * @return Mono<User> updated user
-     */
     @PutMapping("/{id}")
     public Mono<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         log.info("Updating user with ID: {}", id);
@@ -84,12 +82,6 @@ public class UserController {
             .doOnError(e -> log.error("Error updating user", e));
     }
 
-    /**
-     * Delete a user.
-     *
-     * @param id User ID
-     * @return Mono<Void>
-     */
     @DeleteMapping("/{id}")
     public Mono<Void> deleteUser(@PathVariable Long id) {
         log.info("Deleting user with ID: {}", id);
@@ -98,24 +90,12 @@ public class UserController {
             .doOnError(e -> log.error("Error deleting user", e));
     }
 
-    /**
-     * Get a user.
-     *
-     * @param id User ID
-     * @return Mono<User>
-     */
     @GetMapping("/{id}")
     public Mono<User> getUser(@PathVariable Long id) {
         log.info("Get user with ID: {}", id);
         return userRepository.findById(id);
     }
 
-    /**
-     * Filter users by ID range and UpdatedAt in descending order.
-     *
-     * @param filter Filter object containing startId and endId
-     * @return Flux<Wrap> wrapped stream of users
-     */
     @PostMapping(value = "/filter", produces = APPLICATION_NDJSON_VALUE)
     @LogExecutionTime
     @Timed(value = "api.stream-json.timer", description = "Time taken to process 'stream' API endpoint")
