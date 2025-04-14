@@ -1,5 +1,5 @@
 package org.ost.investigate.springboot.examples.rest;
-import static org.springframework.data.domain.PageRequest.of;
+
 import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 
 import io.micrometer.core.annotation.Timed;
@@ -12,10 +12,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.ost.investigate.springboot.examples.aop.LogExecutionTime;
+import org.ost.investigate.springboot.examples.dto.UserFilter;
 import org.ost.investigate.springboot.examples.entyties.User;
 import org.ost.investigate.springboot.examples.repository.UserRepository;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,20 +38,13 @@ public class UserController {
     private final UserRepository userRepository;
 
     @GetMapping(produces = APPLICATION_NDJSON_VALUE)
-    public Flux<Wrap> getUsers(@RequestParam(defaultValue = "-1") long startId,
-        @RequestParam(defaultValue = "-1") long endId,
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "10") int size,
-        @RequestParam(defaultValue = "updatedAt") String sortField) {
+    public Flux<Wrap> getUsers(UserFilter filter,
+        @PageableDefault Pageable pageable) {
         log.info("Fetching users");
 
-        Pageable pageable = of(page, size, Sort.by(sortField).descending());
+        UserFilter actualFilter = (filter != null) ? filter : new UserFilter();
 
-        startId = startId > 0 ? startId : 0L;
-        endId = Math.max(endId > 0 ? endId : Long.MAX_VALUE, startId);
-
-        return userRepository.findByIdBetween(startId, endId, pageable)
-            .delayElements(Duration.ofMillis(500))
+        return userRepository.findByFilter(actualFilter, pageable)
             .map(Object.class::cast)
             .map(v -> new Wrap("data", v))
             .concatWithValues(new Wrap("done", null))

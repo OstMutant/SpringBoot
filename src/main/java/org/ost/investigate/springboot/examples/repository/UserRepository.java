@@ -5,7 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 
-public interface UserRepository extends ReactiveCrudRepository<User, Long> {
+public interface UserRepository extends ReactiveCrudRepository<User, Long>, UserRepositoryCustom {
     Flux<User> findByIdBetween(Long startId, Long endId, Pageable pageable);
 
     Flux<User> findAllByOrderByUpdatedAtDesc();
