@@ -16,7 +16,7 @@ h4 {
 }
 
 .table {
-  width: 100%; /* Make the table take full width of its container */
+  width: 145%; /* Make the table take full width of its container */
   border-collapse: collapse; /* Collapse borders of table cells into a single border */
   font-size: 14px;
   table-layout: fixed; /* Use fixed table layout */

@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -38,8 +37,7 @@ public class UserController {
     private final UserRepository userRepository;
 
     @GetMapping(produces = APPLICATION_NDJSON_VALUE)
-    public Flux<Wrap> getUsers(UserFilter filter,
-        @PageableDefault Pageable pageable) {
+    public Flux<Wrap> getUsers(UserFilter filter, @PageableDefault Pageable pageable) {
         log.info("Fetching users");
 
         UserFilter actualFilter = (filter != null) ? filter : new UserFilter();
