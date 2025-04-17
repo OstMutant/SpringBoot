@@ -54,14 +54,14 @@ $(document).ready(function() {
         data: JSON.stringify(user),
         success: function(response) {
           $('#userModal').modal('hide');
-          loadUsers();
+          updateTableRow(userIdToEdit, response);
         },
         error: function(error) {
           console.error('Failed to update user: ', error.responseText);
         }
       });
     } else {
-      // Add new user
+      // Add user
       $.ajax({
         url: '/users',
         method: 'POST',
@@ -75,6 +75,16 @@ $(document).ready(function() {
           console.error('Failed to add user: ', error.responseText);
         }
       });
+    }
+  }
+
+  function updateTableRow(userId, updatedUserData) {
+    const $rowToUpdate = $(`#user-row-${userId}`);
+    if ($rowToUpdate.length) {
+      $rowToUpdate.find('td:nth-child(2)').text(updatedUserData.name);
+      $rowToUpdate.find('td:nth-child(4)').text(new Date(updatedUserData.updatedAt).toLocaleString());
+    } else {
+      console.warn(`Row with ID ${userId} not found for update.`);
     }
   }
 

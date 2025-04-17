@@ -1,14 +1,119 @@
+/* General styles */
+body {
+  font-family: 'Open Sans', sans-serif; /* Example font */
+}
+
 h4 {
   color: red;
 }
 
 .table-responsive {
-  height: 400px;  /* Fixed height of the container */
-  width: 600px;   /* Static width of the container */
-  overflow-y: auto;   /* Vertical scrolling */
-  overflow-x: auto;   /* Horizontal scrolling */
+  height: 400px; /* Keep the fixed height for vertical scrolling */
+  width: 80%; /* Set the width to 80% of the parent container */
+  overflow-y: auto; /* Keep vertical scrolling */
+  overflow-x: hidden; /* Remove horizontal scrolling */
+  margin-top: 20px; /* Added top margin for the table */
 }
 
 .table {
-  width: 98%;
+  width: 100%; /* Make the table take full width of its container */
+  border-collapse: collapse; /* Collapse borders of table cells into a single border */
+  font-size: 14px;
+  table-layout: fixed; /* Use fixed table layout */
 }
+
+.table th,
+.table td {
+  padding: 8px 12px;
+  border: 1px solid #ddd; /* Light gray border for table cells */
+  text-align: left;
+  overflow: hidden; /* Hide overflowing content */
+  text-overflow: ellipsis; /* Show ellipsis for overflow */
+}
+
+.table thead th {
+  background-color: #f8f9fa; /* Light gray background for table headers */
+  border-bottom: 2px solid #ccc; /* Thicker border at the bottom of table headers */
+  font-weight: bold;
+}
+
+.table tbody tr:nth-child(even) {
+  background-color: #f2f2f2; /* Light gray background for even table rows */
+}
+
+.table tbody tr:hover {
+  background-color: #e0f7fa; /* Light blue background on row hover */
+  cursor: pointer;
+}
+
+/* Styles for the Id column */
+thead th:nth-child(1),
+tbody td:nth-child(1) {
+  width: 60px; /* Adjust width for Id column */
+  text-align: center;
+}
+
+/* Styles for the Name column */
+thead th:nth-child(2),
+tbody td:nth-child(2) {
+  width: auto; /* Let Name column take remaining space */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal; /* Allow text to wrap to the next line */
+  word-break: break-word; /* Break long words */
+}
+
+/* Styles for the Created At and Updated At columns */
+thead th:nth-child(3),
+tbody td:nth-child(3) {
+  width: 180px; /* Increase width for Created At */
+  white-space: nowrap; /* Ensure date stays on one line */
+}
+
+thead th:nth-child(4),
+tbody td:nth-child(4) {
+  width: 180px; /* Increase width for Updated At */
+  white-space: nowrap; /* Ensure date stays on one line */
+}
+
+/* Styles for the Actions column */
+thead th:last-child,
+tbody td:last-child {
+  width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  justify-content: center;
+}
+
+.edit-button,
+.delete-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 0.9em;
+}
+
+.edit-button {
+  background-color: #007bff;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+/* Additional styles (optional) */
+/* th { text-align: center; } */

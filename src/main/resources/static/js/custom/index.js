@@ -33,7 +33,7 @@ function validateInput(startId, endId) {
 
 function createRowHtml(value) {
   return `
-    <tr>
+    <tr id="user-row-${value.id}">
       <td>${value.id}</td>
       <td>${value.name}</td>
       <td>${new Date(value.createdAt).toLocaleString()}</td>
