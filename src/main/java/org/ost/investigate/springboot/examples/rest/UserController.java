@@ -2,16 +2,11 @@ package org.ost.investigate.springboot.examples.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 
-import io.micrometer.core.annotation.Timed;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.ost.investigate.springboot.examples.aop.LogExecutionTime;
 import org.ost.investigate.springboot.examples.dto.UserFilter;
 import org.ost.investigate.springboot.examples.entyties.User;
 import org.ost.investigate.springboot.examples.repository.UserRepository;
@@ -41,11 +36,24 @@ public class UserController {
         log.info("Fetching users");
 
         UserFilter actualFilter = (filter != null) ? filter : new UserFilter();
+        Mono<Long> totalItemsMono = userRepository.countByFilter(actualFilter);
+        Flux<User> filteredUsersFlux = userRepository.findByFilter(actualFilter, pageable);
 
-        return userRepository.findByFilter(actualFilter, pageable)
+        Flux<Wrap> metadataFlux = totalItemsMono
+            .map(totalItems -> new Wrap("pagination_metadata",
+                new PaginationMetadata(totalItems, pageable.getPageSize(), pageable.getPageNumber())))
+            .flux();
+
+        Flux<Wrap> dataFlux = filteredUsersFlux
             .map(Object.class::cast)
-            .map(v -> new Wrap("data", v))
-            .concatWithValues(new Wrap("done", null))
+            .map(v -> new Wrap("data", v));
+
+        Flux<Wrap> doneFlux = Flux.just(new Wrap("done", null));
+
+        return metadataFlux
+            .concatWith(dataFlux)
+            .concatWith(doneFlux)
+            .delayElements(Duration.ofMillis(100))
             .doOnError(e -> log.error("Error fetching users", e));
     }
 
@@ -88,34 +96,10 @@ public class UserController {
         return userRepository.findById(id);
     }
 
-    @PostMapping(value = "/filter", produces = APPLICATION_NDJSON_VALUE)
-    @LogExecutionTime
-    @Timed(value = "api.stream-json.timer", description = "Time taken to process 'stream' API endpoint")
-    public Flux<Wrap> getUsersByFilter(@RequestBody Filter filter) {
-        log.info("Server JSON Stream from Spring Boot!");
-
-        Flux<User> filteredUsers = (filter.getStartId() == null && filter.getEndId() == null)
-            ? userRepository.findAllByOrderByUpdatedAtDesc()
-            : userRepository.findByIdBetweenOrderByUpdatedAtDesc(
-                Objects.nonNull(filter.getStartId()) ? filter.getStartId() : Long.MIN_VALUE,
-                Objects.nonNull(filter.getEndId()) ? filter.getEndId() : Long.MAX_VALUE);
-
-        return filteredUsers
-            .delayElements(Duration.ofMillis(500))
-            .map(Object.class::cast)
-            .map(v -> new Wrap("data", v))
-            .concatWithValues(new Wrap("done", null));
-    }
-
     public record Wrap(String type, Object value) {
     }
 
-    @NoArgsConstructor
-    @Getter
-    @Setter
-    public static class Filter {
-        private Long startId;
-        private Long endId;
+    public record PaginationMetadata(long totalItems, int itemsPerPage, int currentPage) {
     }
 }
 

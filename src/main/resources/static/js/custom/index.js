@@ -1,10 +1,11 @@
+// index.js
 // DOM Elements
 let $loadButton, $tableBody, $startId, $endId;
 
 // Functions
 function startLoading() {
   $loadButton.text('Loading...').prop('disabled', true);
-  $tableBody.empty();
+  $tableBody.empty(); // Clear existing table data before loading
 }
 
 function stopLoading() {
@@ -46,8 +47,9 @@ function createRowHtml(value) {
   `;
 }
 
+// loadUsers function using oboe targeting GET /users
 function loadUsers() {
-  startLoading();
+  startLoading(); // Includes clearing the table
 
   const startId = $startId.val() ? parseInt($startId.val()) : null;
   const endId = $endId.val() ? parseInt($endId.val()) : null;
@@ -57,15 +59,33 @@ function loadUsers() {
     return;
   }
 
-  const filter = { startId, endId };
+  let url = '/users'; // Target the GET /users endpoint
+  const params = new URLSearchParams(); // Use URLSearchParams to build query string
+
+  // Add filter parameters if they exist
+  if (startId !== null) {
+    // Use 'filter.startId' to match the backend UserFilter binding
+    params.append('startId', startId);
+  }
+  if (endId !== null) {
+    // Use 'filter.endId' to match the backend UserFilter binding
+    params.append('endId', endId);
+  }
+
+  // Append parameters to the URL if they exist
+  if (params.toString()) {
+    url += '?' + params.toString();
+  }
 
   oboe({
-    url: '/users/filter',
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(filter),
+    url: url, // The constructed URL with parameters
+    method: 'GET' // Use GET method
+    // No headers or body needed for GET with query parameters
   })
-    .start(() => startLoading())
+    .start(() => {
+    // startLoading() is already called at the beginning, maybe add a stream specific log here
+    console.log('Oboe stream started for /users');
+  })
     .node('!', (record) => {
     if (record.type === 'data') {
       $tableBody.append(createRowHtml(record.value));
@@ -73,7 +93,7 @@ function loadUsers() {
       stopLoading();
       console.log('End of stream reached');
     }
-    return oboe.drop;
+    return oboe.drop; // Continue dropping processed records
   })
     .fail((error) => {
     console.error('Stream failed:', error);
@@ -82,12 +102,14 @@ function loadUsers() {
   });
 }
 
+// Function to delete a user (kept as is)
 function deleteUser(userId) {
   if (confirm('Are you sure you want to delete this user?')) {
     $.ajax({
       url: `/users/${userId}`,
       method: 'DELETE',
       success: (response) => {
+        // Reload users after deletion
         loadUsers();
         alert('User deleted successfully');
       },
@@ -98,6 +120,7 @@ function deleteUser(userId) {
     });
   }
 }
+
 
 // DOM Ready
 $(document).ready(() => {
@@ -110,21 +133,25 @@ $(document).ready(() => {
   // Event Handlers
   $loadButton.on('click', loadUsers);
 
-  // Listener for custom event
+  // Listener for custom event (kept as is)
+  // Note: User addition currently calls loadUsers, which is fine for now.
   document.addEventListener('userAdded', (event) => {
     loadUsers();
     console.log('New user added:', event.detail);
   });
 
-  // Delegate click event for dynamically added edit buttons
+  // Delegate click event for dynamically added edit buttons (kept as is)
   $(document).on('click', '.edit-button', function () {
     const userId = $(this).data('id');
-    openModalForEdit(userId);
+    openModalForEdit(userId); // Assuming openModalForEdit is defined in modal.js
   });
 
-  // Delegate click event for dynamically added delete buttons
+  // Delegate click event for dynamically added delete buttons (kept as is)
   $(document).on('click', '.delete-button', function () {
     const userId = $(this).data('id');
     deleteUser(userId);
   });
 });
+
+// Assuming createRowHtml, startLoading, stopLoading, showError, validateInput
+// are defined or included elsewhere, and that openModalForEdit is in modal.js
