@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>User List Fragment</title>
+</head>
+<body>
+
+<div th:fragment="userList">
+
+  <button id="triggerButton" type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#userModal">
+    Add
+  </button>
+  <input type="number" id="startId" placeholder="Start ID" min="1">
+  <input type="number" id="endId" placeholder="End ID" min="1">
+  <button id="loadButton" class="btn btn-primary">Load</button>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">Id</th>
+        <th scope="col">Name</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Updated At</th>
+        <th scope="col">Actions</th> </tr>
+      </thead>
+      <tbody id="tableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-info-text mt-3 mb-2">
+    <span id="paginationInfo"></span>
+  </div>
+
+  <nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-center" id="paginationList">
+    </ul>
+  </nav>
+</div>
+
+</body>
+</html>

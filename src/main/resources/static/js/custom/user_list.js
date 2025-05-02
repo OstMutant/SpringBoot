@@ -1,4 +1,4 @@
-// index.js
+// user_list.js
 // DOM Elements
 let $loadButton, $tableBody, $startId, $endId;
 let $paginationInfo, $paginationList;

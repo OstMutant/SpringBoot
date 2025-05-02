@@ -10,7 +10,7 @@
   <script data-th-src="@{/js/oboe-browser.min.js}"></script>
   <script data-th-src="@{/js/bootstrap.min.js}"></script>
   <script data-th-src="@{/js/popper.min.js}"></script>
-  <script data-th-src="@{/js/custom/index.js}"></script>
+  <script data-th-src="@{/js/custom/user_list.js}"></script>
   <script data-th-src="@{/js/custom/modal.js}"></script>
   <title>Spring Boot Application</title>
 </head>
@@ -18,41 +18,10 @@
 <h4>Hello, [[${name}]]!</h4>
 
 <h4>JSON stream uses js!</h4>
-<button id="triggerButton" type="button" class="btn btn-success" data-bs-toggle="modal">
-  Add
-</button>
 <!-- Include the combined modal template -->
 <div data-th-insert="fragments/modal :: modal"></div>
 <br/>
-
-<input type="text" id="startId" placeholder="Start ID">
-<input type="text" id="endId" placeholder="End ID">
-<button id="loadButton" class="btn btn-primary">Load</button>
-
-<div class="table-responsive">
-  <table class="table">
-    <thead>
-    <tr>
-      <th scope="col">Id</th>
-      <th scope="col">Name</th>
-      <th scope="col">Created At</th>
-      <th scope="col">Updated At</th>
-      <th scope="col">Actions</th> <!-- Add Actions column -->
-    </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
-</div>
-
-<div class="pagination-info-text mt-3 mb-2">
-  <span id="paginationInfo"></span>
-</div>
-
-<nav aria-label="Page navigation example">
-  <ul class="pagination justify-content-center" id="paginationList">
-  </ul>
-</nav>
+<div data-th-insert="fragments/user_list :: userList"></div>
 
 <h4>Finish!</h4>
 </body>
