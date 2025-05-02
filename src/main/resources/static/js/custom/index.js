@@ -64,11 +64,9 @@ function loadUsers() {
 
   // Add filter parameters if they exist
   if (startId !== null) {
-    // Use 'filter.startId' to match the backend UserFilter binding
     params.append('startId', startId);
   }
   if (endId !== null) {
-    // Use 'filter.endId' to match the backend UserFilter binding
     params.append('endId', endId);
   }
 
@@ -80,20 +78,23 @@ function loadUsers() {
   oboe({
     url: url, // The constructed URL with parameters
     method: 'GET' // Use GET method
-    // No headers or body needed for GET with query parameters
   })
     .start(() => {
-    // startLoading() is already called at the beginning, maybe add a stream specific log here
     console.log('Oboe stream started for /users');
   })
     .node('!', (record) => {
     if (record.type === 'data') {
       $tableBody.append(createRowHtml(record.value));
+    } else if (record.type === 'pagination_metadata') {
+      console.log('Received Pagination Metadata:', record.value);
     } else if (record.type === 'done') {
-      stopLoading();
       console.log('End of stream reached');
     }
     return oboe.drop; // Continue dropping processed records
+  })
+    .done(() => {
+    stopLoading();
+    console.log('Oboe stream completed.');
   })
     .fail((error) => {
     console.error('Stream failed:', error);
