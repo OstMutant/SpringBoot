@@ -86,16 +86,33 @@ function validateInput(startId, endId) {
   return true;
 }
 
+/**
+ * Creates an HTML table row string for a given user object,
+ * including external SVG icons for Edit and Delete buttons, and wrapping
+ * content in inner divs for better vertical centering with flexbox.
+ * @param {object} value - The user object containing id, name, createdAt, updatedAt.
+ * @returns {string} - The HTML string for a table row.
+ */
 function createRowHtml(value) {
+  // Ensure dates are valid before formatting
+  const createdAt = value.createdAt ? new Date(value.createdAt).toLocaleString() : 'N/A';
+  const updatedAt = value.updatedAt ? new Date(value.updatedAt).toLocaleString() : 'N/A';
+
   return `
     <tr id="user-row-${value.id}">
-      <td>${value.id}</td>
-      <td>${value.name}</td>
-      <td>${new Date(value.createdAt).toLocaleString()}</td>
-      <td>${new Date(value.updatedAt).toLocaleString()}</td>
+      <td><div class="td-content">${value.id}</div></td>
+      <td><div class="td-content td-name-content">${value.name}</div></td>
+      <td><div class="td-content">${createdAt}</div></td>
+      <td><div class="td-content">${updatedAt}</div></td>
       <td>
-        <button class="btn btn-primary edit-button" data-id="${value.id}">Edit</button>
-        <button class="btn btn-danger delete-button" data-id="${value.id}">Delete</button>
+        <div class="td-content td-actions-content">
+          <button class="btn btn-primary edit-button me-2" data-id="${value.id}" title="Edit User">
+            <img src="/icons/icon-pencil.svg" alt="Edit" width="16" height="16">
+          </button>
+          <button class="btn btn-danger delete-button" data-id="${value.id}" title="Delete User">
+            <img src="/icons/icon-trash.svg" alt="Delete" width="16" height="16">
+          </button>
+        </div>
       </td>
     </tr>
   `;
@@ -179,9 +196,9 @@ function goToPage(page) {
   }
 }
 
-// Function to delete a user (kept as is)
+// Function to delete a user
 function deleteUser(userId) {
-  if (confirm('Are you sure you want to delete this user?')) {
+  if (confirm('Arerocities sure you want to delete this user?')) {
     $.ajax({
       url: `/users/${userId}`,
       method: 'DELETE',
@@ -225,8 +242,7 @@ $(document).ready(() => {
     loadUsers(0);
   });
 
-  // Listener for custom event (kept as is)
-  // Note: User addition currently calls loadUsers, which is fine for now.
+  // Listener for custom event
   $(document).on('userAdded', function(event, newUser) {
     loadUsers(currentPage);
     console.log('New user added (jQuery event), reloading users:', newUser);
@@ -243,13 +259,18 @@ $(document).ready(() => {
     }
   });
 
-  // Delegate click event for dynamically added edit buttons (kept as is)
+  // Delegate click event for dynamically added edit buttons
   $(document).on('click', '.edit-button', function () {
     const userId = $(this).data('id');
-    openModalForEdit(userId); // Assuming openModalForEdit is defined in modal.js
+    // Assuming openModalForEdit is defined globally by modal.js
+    if (typeof openModalForEdit === 'function') { // Added check for function existence
+      openModalForEdit(userId);
+    } else {
+      console.error('openModalForEdit function not found. Ensure modal.js is loaded.');
+    }
   });
 
-  // Delegate click event for dynamically added delete buttons (kept as is)
+  // Delegate click event for dynamically added delete buttons
   $(document).on('click', '.delete-button', function () {
     const userId = $(this).data('id');
     deleteUser(userId);

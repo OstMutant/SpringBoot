@@ -53,7 +53,7 @@ public class UserController {
         return metadataFlux
             .concatWith(dataFlux)
             .concatWith(doneFlux)
-            .delayElements(Duration.ofMillis(100))
+//            .delayElements(Duration.ofMillis(100))
             .doOnError(e -> log.error("Error fetching users", e));
     }
 
