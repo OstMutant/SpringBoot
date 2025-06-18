@@ -143,6 +143,9 @@ function loadUsers(page = 0) {
     params.append('endId', endId);
   }
 
+  // Add sort parameter for updatedAt in descending order
+  params.append('sort', 'updatedAt,desc');
+
   params.append('page', currentPage); // Send the requested 0-indexed page number
   params.append('size', pageSize);
 
@@ -224,6 +227,9 @@ $(document).ready(() => {
   $endId = $('#endId');
   $paginationInfo = $('#paginationInfo');
   $paginationList = $('#paginationList');
+
+  // Load users on initial page load
+  loadUsers(0);
 
   $paginationList.on('click', '.page-link', function(event) {
     event.preventDefault();
