@@ -1,15 +1,5 @@
 (function() {
-  // Centralized configuration module
-  const Config = {
-    pagination: {
-      pageSize: 10,
-    },
-    // apiBaseUrl is now centralized in UtilsConfig (in utils.js), used by window.Api
-    defaultSort: {
-      field: 'createdAt',
-      direction: 'desc'
-    }
-  };
+  // Centralized configuration module is now accessed via window.GlobalConfig
 
   /**
    * Class responsible for rendering the user table and pagination controls.
@@ -212,8 +202,8 @@
       this.currentPage = 0;
       this.totalItems = 0;
       this.totalPages = 0;
-      this.currentSortField = Config.defaultSort.field;
-      this.currentSortDirection = Config.defaultSort.direction;
+      this.currentSortField = window.GlobalConfig.defaultSort.field; // Use GlobalConfig
+      this.currentSortDirection = window.GlobalConfig.defaultSort.direction; // Use GlobalConfig
 
       // Initialize UserTableRenderer
       this.renderer = new UserTableRenderer(
@@ -221,7 +211,7 @@
         this.$paginationInfo,
         this.$paginationList,
         this.$tableHeaders,
-        Config.pagination.pageSize
+        window.GlobalConfig.pagination.pageSize // Use GlobalConfig
       );
 
       // Initialize FilterService
@@ -306,7 +296,7 @@
       // Prepare query parameters for the API call
       const queryParams = {
         page: this.currentPage,
-        size: Config.pagination.pageSize,
+        size: window.GlobalConfig.pagination.pageSize, // Use GlobalConfig
         sort: `${this.currentSortField},${this.currentSortDirection}`
       };
 
@@ -318,7 +308,7 @@
       if (filterValues.updatedAtStart) queryParams.updatedAtStart = filterValues.updatedAtStart;
       if (filterValues.updatedAtEnd) queryParams.updatedAtEnd = filterValues.updatedAtEnd;
 
-      const url = `${window.Api.UtilsConfig.apiBaseUrl}?${new URLSearchParams(queryParams).toString()}`;
+      const url = `${window.GlobalConfig.apiBaseUrl}?${new URLSearchParams(queryParams).toString()}`; // Use GlobalConfig
 
       oboe({
         url: url,
@@ -333,7 +323,7 @@
           this.renderer.appendRow(this.renderer.createRowHtml(record.value));
         } else if (record.type === 'pagination_metadata') {
           this.totalItems = record.value.totalItems;
-          this.totalPages = Math.ceil(this.totalItems / Config.pagination.pageSize);
+          this.totalPages = Math.ceil(this.totalItems / window.GlobalConfig.pagination.pageSize); // Use GlobalConfig
           this.currentPage = record.value.currentPage;
           this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
 

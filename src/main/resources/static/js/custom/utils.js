@@ -1,8 +1,15 @@
 (function() {
-  // Centralized configuration for utilities (e.g., for feedback duration)
-  const UtilsConfig = {
+  // Centralized global configuration for the entire application
+  const GlobalConfig = {
     feedbackDuration: 5000, // Milliseconds for toast messages auto-dismissal
-    apiBaseUrl: '/users', // Base URL for user API endpoints, duplicated from user_list.js Config for shared API calls
+    apiBaseUrl: '/users', // Base URL for user API endpoints
+    pagination: { // Pagination settings previously in user_list.js
+      pageSize: 10,
+    },
+    defaultSort: { // Default sorting settings previously in user_list.js
+      field: 'createdAt',
+      direction: 'desc'
+    }
   };
 
   /**
@@ -28,7 +35,7 @@
       } else {
         alertElement.remove();
       }
-    }, UtilsConfig.feedbackDuration);
+    }, GlobalConfig.feedbackDuration); // Use GlobalConfig for feedback duration
   };
 
   /**
@@ -205,7 +212,7 @@
     /**
      * Validates a name string.
      * @param {string} name - The name string to validate.
-     * @param {function} showErrorCallback - Callback function to display an error message (e.g., for general feedback).
+     * @param {function} showErrorCallback - Callback function to display a general error message (e.g., a toast).
      * @param {object} [$inputElement=null] - Optional: jQuery element of the input field to apply visual feedback.
      * @param {object} [$errorElement=null] - Optional: jQuery element of the error message container for the input.
      * @returns {boolean} - True if the name is valid, false otherwise.
@@ -318,7 +325,6 @@
    * API service module for user-related operations.
    */
   const Api = {
-    UtilsConfig: UtilsConfig, // Expose UtilsConfig as a property of Api
     /**
      * Fetches a single user by ID.
      * @param {number} userId - The ID of the user to fetch.
@@ -326,7 +332,7 @@
      * @throws {Error} - If the network request fails or response is not OK.
      */
     fetchUser: async (userId) => {
-      const response = await fetch(`${UtilsConfig.apiBaseUrl}/${userId}`);
+      const response = await fetch(`${GlobalConfig.apiBaseUrl}/${userId}`); // Use GlobalConfig
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Failed to fetch user (ID: ${userId}): ${response.status} - ${errorText}`);
@@ -342,11 +348,11 @@
      * @throws {Error} - If the network request fails or response is not OK.
      */
     saveUser: async (user, userId) => {
-      let url = UtilsConfig.apiBaseUrl;
+      let url = GlobalConfig.apiBaseUrl; // Use GlobalConfig
       let method = 'POST';
 
       if (userId) {
-        url = `${UtilsConfig.apiBaseUrl}/${userId}`;
+        url = `${GlobalConfig.apiBaseUrl}/${userId}`; // Use GlobalConfig
         method = 'PUT';
       }
 
@@ -372,7 +378,7 @@
      * @throws {Error} - If the network request fails or response is not OK.
      */
     deleteUser: async (userId) => {
-      const response = await fetch(`${UtilsConfig.apiBaseUrl}/${userId}`, {
+      const response = await fetch(`${GlobalConfig.apiBaseUrl}/${userId}`, { // Use GlobalConfig
         method: 'DELETE',
       });
       if (!response.ok) {
@@ -396,7 +402,7 @@
      */
     fetchUsers: async (queryParams) => {
       const params = new URLSearchParams(queryParams);
-      const url = `${UtilsConfig.apiBaseUrl}?${params.toString()}`;
+      const url = `${GlobalConfig.apiBaseUrl}?${params.toString()}`; // Use GlobalConfig
 
       // NOTE: This fetchUsers implementation is for a non-streaming API.
       // Your current loadUsers in user_list.js uses oboe.js for streaming.
@@ -420,4 +426,5 @@
   window.EventBus = new EventBus(); // Expose the EventBus globally
   window.InputValidator = new InputValidator(); // Expose InputValidator globally
   window.FilterService = FilterService; // Expose FilterService constructor globally
+  window.GlobalConfig = GlobalConfig; // Expose GlobalConfig globally
 })();
