@@ -1,10 +1,12 @@
 var $saveButton, $modalName, $modalNameError, $userModalLabel, userIdToEdit;
+var userModalInstance;
 
 function openModalForAdd() {
   $userModalLabel.text('Add User');
   $modalName.val('');
   userIdToEdit = null;
-  $('#userModal').modal('show');
+  // The #triggerButton (in HTML) already has data-bs-toggle="modal" and data-bs-target="#userModal",
+  // so Bootstrap handles showing the modal when clicked. This function only prepares its content.
 }
 
 function openModalForEdit(userId) {
@@ -12,7 +14,13 @@ function openModalForEdit(userId) {
     userIdToEdit = userId;
     $userModalLabel.text('Edit User');
     $modalName.val(user.name);
-    $('#userModal').modal('show');
+    // Always use the Bootstrap instance to show the modal
+    if (userModalInstance) {
+      userModalInstance.show();
+    } else {
+      // Fallback for unexpected cases (though ideally userModalInstance should always be available)
+      $('#userModal').modal('show');
+    }
   });
 }
 
@@ -22,6 +30,27 @@ $(document).ready(function() {
   $modalNameError = $('#modalNameError');
   $userModalLabel = $('#userModalLabel');
   userIdToEdit = null;
+
+  var userModalElement = document.getElementById('userModal');
+  if (userModalElement && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    userModalInstance = new bootstrap.Modal(userModalElement);
+
+    // Add event listener for when the modal is fully hidden
+    userModalElement.addEventListener('hidden.bs.modal', function () {
+      // Ensure no element within the modal retains focus before moving it
+      if (document.activeElement && userModalElement.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+      // Return focus to the button that likely opened the modal after a short delay
+      // This helps with accessibility, ensuring focus is not lost in a hidden element
+      setTimeout(function() {
+        $('#triggerButton').focus();
+      }, 0); // 0ms delay ensures this runs at the end of the current call stack
+    });
+
+  } else {
+    console.warn("Bootstrap Modal not found or element not ready. Falling back to jQuery .modal().");
+  }
 
   function showError(inputElement, errorElement, message) {
     inputElement.addClass('is-invalid');
@@ -53,7 +82,12 @@ $(document).ready(function() {
         contentType: 'application/json',
         data: JSON.stringify(user),
         success: function(response) {
-          $('#userModal').modal('hide');
+          // Always use the Bootstrap instance to hide the modal
+          if (userModalInstance) {
+            userModalInstance.hide();
+          } else {
+            $('#userModal').modal('hide');
+          }
           $(document).trigger('userUpdated', response);
         },
         error: function(error) {
@@ -68,7 +102,12 @@ $(document).ready(function() {
         contentType: 'application/json',
         data: JSON.stringify(user),
         success: function(response) {
-          $('#userModal').modal('hide');
+          // Always use the Bootstrap instance to hide the modal
+          if (userModalInstance) {
+            userModalInstance.hide();
+          } else {
+            $('#userModal').modal('hide');
+          }
           $(document).trigger('userAdded', response);
         },
         error: function(error) {
