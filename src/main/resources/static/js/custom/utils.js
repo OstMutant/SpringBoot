@@ -126,6 +126,164 @@
   }
 
   /**
+   * InputValidator class for validating various input fields.
+   */
+  class InputValidator {
+    /**
+     * Validates filter input fields.
+     * @param {object} filters - An object containing filter values.
+     * @param {function} showErrorCallback - Callback function to display an error message.
+     * @returns {boolean} - True if all inputs are valid, false otherwise.
+     */
+    validateUserFilters(filters, showErrorCallback) {
+      const {
+        startId,
+        endId,
+        createdAtStart,
+        createdAtEnd,
+        updatedAtStart,
+        updatedAtEnd
+      } = filters;
+
+      if (startId !== null && isNaN(startId)) {
+        showErrorCallback('Start ID must be a number!');
+        return false;
+      }
+      if (endId !== null && isNaN(endId)) {
+        showErrorCallback('End ID must be a number!');
+        return false;
+      }
+      if (startId !== null && endId !== null && startId > endId) {
+        showErrorCallback('Start ID cannot be greater than End ID!');
+        return false;
+      }
+
+      let dateCreatedAtStart = null;
+      if (createdAtStart) {
+        dateCreatedAtStart = new Date(createdAtStart);
+        if (isNaN(dateCreatedAtStart.getTime())) {
+          showErrorCallback('Invalid Created At Start date format!');
+          return false;
+        }
+      }
+      let dateCreatedAtEnd = null;
+      if (createdAtEnd) {
+        dateCreatedAtEnd = new Date(createdAtEnd);
+        if (isNaN(dateCreatedAtEnd.getTime())) {
+          showErrorCallback('Invalid Created At End date format!');
+          return false;
+        }
+      }
+      if (dateCreatedAtStart && dateCreatedAtEnd && dateCreatedAtStart > dateCreatedAtEnd) {
+        showErrorCallback('Created At Start date cannot be after Created At End date!');
+        return false;
+      }
+
+      let dateUpdatedAtStart = null;
+      if (updatedAtStart) {
+        dateUpdatedAtStart = new Date(updatedAtStart);
+        if (isNaN(dateUpdatedAtStart.getTime())) {
+          showErrorCallback('Invalid Updated At Start date format!');
+          return false;
+        }
+      }
+      let dateUpdatedAtEnd = null;
+      if (updatedAtEnd) {
+        dateUpdatedAtEnd = new Date(updatedAtEnd);
+        if (isNaN(dateUpdatedAtEnd.getTime())) {
+          showErrorCallback('Invalid Updated At End date format!');
+          return false;
+        }
+      }
+      if (dateUpdatedAtStart && dateUpdatedAtEnd && dateUpdatedAtStart > dateUpdatedAtEnd) {
+        showErrorCallback('Updated At Start date cannot be after Updated At End date!');
+        return false;
+      }
+      return true;
+    }
+
+    /**
+     * Validates a name string.
+     * @param {string} name - The name string to validate.
+     * @param {function} showErrorCallback - Callback function to display an error message.
+     * @returns {boolean} - True if the name is valid, false otherwise.
+     */
+    validateName(name, showErrorCallback) {
+      if (!name || name.trim() === '') {
+        showErrorCallback('Name cannot be empty.');
+        return false;
+      }
+      return true;
+    }
+  }
+
+  /**
+   * FilterService class for collecting and managing filter values from DOM.
+   */
+  class FilterService {
+    constructor($startId, $endId, $filterName, $filterCreatedAtStart, $filterCreatedAtEnd, $filterUpdatedAtStart, $filterUpdatedAtEnd) {
+      this.$startId = $startId;
+      this.$endId = $endId;
+      this.$filterName = $filterName;
+      this.$filterCreatedAtStart = $filterCreatedAtStart;
+      this.$filterCreatedAtEnd = $filterCreatedAtEnd;
+      this.$filterUpdatedAtStart = $filterUpdatedAtStart;
+      this.$filterUpdatedAtEnd = $filterUpdatedAtEnd;
+    }
+
+    /**
+     * Gets all current filter values from the DOM.
+     * @returns {object} - An object containing all filter values.
+     */
+    getFilterValues() {
+      return {
+        startId: this.$startId.val() ? parseInt(this.$startId.val()) : null,
+        endId: this.$endId.val() ? parseInt(this.$endId.val()) : null,
+        nameFilter: this.$filterName.val(),
+        createdAtStart: this.$filterCreatedAtStart.val(),
+        createdAtEnd: this.$filterCreatedAtEnd.val(),
+        updatedAtStart: this.$filterUpdatedAtStart.val(),
+        updatedAtEnd: this.$filterUpdatedAtEnd.val(),
+      };
+    }
+
+    /**
+     * Clears all filter input fields.
+     */
+    clearFilterFields() {
+      this.$startId.val('');
+      this.$endId.val('');
+      this.$filterName.val('');
+      this.$filterCreatedAtStart.val('');
+      this.$filterCreatedAtEnd.val('');
+      this.$filterUpdatedAtStart.val('');
+      this.$filterUpdatedAtEnd.val('');
+
+      this.$filterCreatedAtStart.removeAttr('max');
+      this.$filterCreatedAtEnd.removeAttr('min');
+      this.$filterUpdatedAtStart.removeAttr('max');
+      this.$filterUpdatedAtEnd.removeAttr('min');
+    }
+
+    /**
+     * Checks if any filter fields currently have values.
+     * @returns {boolean} - True if any filter field has a value, false otherwise.
+     */
+    hasActiveFilters() {
+      return (
+      this.$startId.val() !== '' ||
+      this.$endId.val() !== '' ||
+      this.$filterName.val() !== '' ||
+      this.$filterCreatedAtStart.val() !== '' ||
+      this.$filterCreatedAtEnd.val() !== '' ||
+      this.$filterUpdatedAtStart.val() !== '' ||
+      this.$filterUpdatedAtEnd.val() !== ''
+      );
+    }
+  }
+
+
+  /**
    * API service module for user-related operations.
    */
   const Api = {
@@ -229,4 +387,6 @@
   window.showConfirmationModal = showConfirmationModal;
   window.Api = Api; // Expose the API service globally
   window.EventBus = new EventBus(); // Expose the EventBus globally
+  window.InputValidator = new InputValidator(); // Expose InputValidator globally
+  window.FilterService = FilterService; // Expose FilterService constructor globally
 })();

@@ -224,6 +224,17 @@
         Config.pagination.pageSize
       );
 
+      // Initialize FilterService
+      this.filterService = new window.FilterService(
+        this.$startId,
+        this.$endId,
+        this.$filterName,
+        this.$filterCreatedAtStart,
+        this.$filterCreatedAtEnd,
+        this.$filterUpdatedAtStart,
+        this.$filterUpdatedAtEnd
+      );
+
       // Initial load users with default sorting
       this.loadUsers(0);
 
@@ -274,65 +285,6 @@
       window.showUserFeedback(message, 'danger');
     }
 
-    // Validates filter input fields
-    validateInput(startId, endId, createdAtStart, createdAtEnd, updatedAtStart, updatedAtEnd) {
-      if (startId !== null && isNaN(startId)) {
-        this.showError('Start ID must be a number!');
-        return false;
-      }
-      if (endId !== null && isNaN(endId)) {
-        this.showError('End ID must be a number!');
-        return false;
-      }
-      if (startId !== null && endId !== null && startId > endId) {
-        this.showError('Start ID cannot be greater than End ID!');
-        return false;
-      }
-
-      let dateCreatedAtStart = null;
-      if (createdAtStart) {
-        dateCreatedAtStart = new Date(createdAtStart);
-        if (isNaN(dateCreatedAtStart.getTime())) {
-          this.showError('Invalid Created At Start date format!');
-          return false;
-        }
-      }
-      let dateCreatedAtEnd = null;
-      if (createdAtEnd) {
-        dateCreatedAtEnd = new Date(createdAtEnd);
-        if (isNaN(dateCreatedAtEnd.getTime())) {
-          this.showError('Invalid Created At End date format!');
-          return false;
-        }
-      }
-      if (dateCreatedAtStart && dateCreatedAtEnd && dateCreatedAtStart > dateCreatedAtEnd) {
-        this.showError('Created At Start date cannot be after Created At End date!');
-        return false;
-      }
-
-      let dateUpdatedAtStart = null;
-      if (updatedAtStart) {
-        dateUpdatedAtStart = new Date(updatedAtStart);
-        if (isNaN(dateUpdatedAtStart.getTime())) {
-          this.showError('Invalid Updated At Start date format!');
-          return false;
-        }
-      }
-      let dateUpdatedAtEnd = null;
-      if (updatedAtEnd) {
-        dateUpdatedAtEnd = new Date(updatedAtEnd);
-        if (isNaN(dateUpdatedAtEnd.getTime())) {
-          this.showError('Invalid Updated At End date format!');
-          return false;
-        }
-      }
-      if (dateUpdatedAtStart && dateUpdatedAtEnd && dateUpdatedAtStart > dateUpdatedAtEnd) {
-        this.showError('Updated At Start date cannot be after Updated At End date!');
-        return false;
-      }
-      return true;
-    }
-
     // Loads users from the server using Oboe.js
     loadUsers(page = 0) {
       this.currentPage = page;
@@ -341,17 +293,9 @@
       this.renderer.clearTableBody();
       this.renderer.showLoadingRow();
 
-      const startId = this.$startId.val() ? parseInt(this.$startId.val()) : null;
-      const endId = this.$endId.val() ? parseInt(this.$endId.val()) : null;
-      const filterName = this.$filterName.val();
-      const filterCreatedAtStart = this.$filterCreatedAtStart.val();
-      const filterCreatedAtEnd = this.$filterCreatedAtEnd.val();
-      const filterUpdatedAtStart = this.$filterUpdatedAtStart.val();
-      const filterUpdatedAtEnd = this.$filterUpdatedAtEnd.val();
+      const filterValues = this.filterService.getFilterValues();
 
-
-      if (!this.validateInput(startId, endId, filterCreatedAtStart, filterCreatedAtEnd, filterUpdatedAtStart,
-        filterUpdatedAtEnd)) {
+      if (!window.InputValidator.validateUserFilters(filterValues, this.showError)) {
         this.stopLoading();
         this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
@@ -366,13 +310,13 @@
         sort: `${this.currentSortField},${this.currentSortDirection}`
       };
 
-      if (startId !== null) queryParams.startId = startId;
-      if (endId !== null) queryParams.endId = endId;
-      if (filterName) queryParams.nameFilter = filterName;
-      if (filterCreatedAtStart) queryParams.createdAtStart = filterCreatedAtStart;
-      if (filterCreatedAtEnd) queryParams.createdAtEnd = filterCreatedAtEnd;
-      if (filterUpdatedAtStart) queryParams.updatedAtStart = filterUpdatedAtStart;
-      if (filterUpdatedAtEnd) queryParams.updatedAtEnd = filterUpdatedAtEnd;
+      if (filterValues.startId !== null) queryParams.startId = filterValues.startId;
+      if (filterValues.endId !== null) queryParams.endId = filterValues.endId;
+      if (filterValues.nameFilter) queryParams.nameFilter = filterValues.nameFilter;
+      if (filterValues.createdAtStart) queryParams.createdAtStart = filterValues.createdAtStart;
+      if (filterValues.createdAtEnd) queryParams.createdAtEnd = filterValues.createdAtEnd;
+      if (filterValues.updatedAtStart) queryParams.updatedAtStart = filterValues.updatedAtStart;
+      if (filterValues.updatedAtEnd) queryParams.updatedAtEnd = filterValues.updatedAtEnd;
 
       const url = `${window.Api.UtilsConfig.apiBaseUrl}?${new URLSearchParams(queryParams).toString()}`;
 
@@ -426,34 +370,12 @@
      * Clears all filter input fields and reloads the user list.
      */
     clearFilters() {
-      const hasActiveFilters =
-      this.$startId.val() !== '' ||
-      this.$endId.val() !== '' ||
-      this.$filterName.val() !== '' ||
-      this.$filterCreatedAtStart.val() !== '' ||
-      this.$filterCreatedAtEnd.val() !== '' ||
-      this.$filterUpdatedAtStart.val() !== '' ||
-      this.$filterUpdatedAtEnd.val() !== '';
-
-      if (!hasActiveFilters) {
+      if (!this.filterService.hasActiveFilters()) {
         console.log('No active filters to clear.');
         return;
       }
 
-      this.$startId.val('');
-      this.$endId.val('');
-      this.$filterName.val('');
-      this.$filterCreatedAtStart.val('');
-      this.$filterCreatedAtEnd.val('');
-      this.$filterUpdatedAtStart.val('');
-      this.$filterUpdatedAtEnd.val('');
-
-      // Clear min/max attributes for date inputs
-      this.$filterCreatedAtStart.removeAttr('max');
-      this.$filterCreatedAtEnd.removeAttr('min');
-      this.$filterUpdatedAtStart.removeAttr('max');
-      this.$filterUpdatedAtEnd.removeAttr('min');
-
+      this.filterService.clearFilterFields();
       this.loadUsers(0);
     }
 

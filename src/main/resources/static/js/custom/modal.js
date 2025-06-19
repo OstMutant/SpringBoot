@@ -72,26 +72,26 @@
       }
     }
 
-    // Shows a validation error directly on the input field
+    // Shows a validation error directly on the input field (now internal helper, could be removed if all validation goes to InputValidator)
     showInputError(inputElement, errorElement, message) {
       inputElement.addClass('is-invalid');
       errorElement.text(message).show();
     }
 
-    // Hides a validation error on the input field
+    // Hides a validation error on the input field (now internal helper, could be removed if all validation goes to InputValidator)
     hideError(inputElement, errorElement) {
       inputElement.removeClass('is-invalid');
       errorElement.hide();
     }
 
-    // Handles input changes in the name field for validation feedback
+    // Handles input changes in the name field for validation feedback, using InputValidator
     handleNameInput() {
-      if (this.$modalName.val().trim()) {
+      const userName = this.$modalName.val().trim();
+      const isValid = window.InputValidator.validateName(userName, (message) => {
+        this.showInputError(this.$modalName, this.$modalNameError, message);
+      });
+      if (isValid) {
         this.hideError(this.$modalName, this.$modalNameError);
-      } else {
-        // Keep this local as it applies directly to the input field
-        this.$modalName.addClass('is-invalid');
-        this.$modalNameError.text('Name cannot be empty.').show();
       }
     }
 
@@ -99,8 +99,12 @@
     async saveUser() {
       const userName = this.$modalName.val().trim();
 
-      if (!userName) {
-        this.showInputError(this.$modalName, this.$modalNameError, 'Name cannot be empty.');
+      // Use InputValidator for name validation
+      const isNameValid = window.InputValidator.validateName(userName, (message) => {
+        this.showInputError(this.$modalName, this.$modalNameError, message);
+      });
+
+      if (!isNameValid) {
         return;
       }
 
