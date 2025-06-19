@@ -2,8 +2,7 @@ package org.ost.investigate.springboot.examples.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +52,7 @@ public class UserController {
         return metadataFlux
             .concatWith(dataFlux)
             .concatWith(doneFlux)
-//            .delayElements(Duration.ofMillis(100))
+            //            .delayElements(Duration.ofMillis(100))
             .doOnError(e -> log.error("Error fetching users", e));
     }
 
@@ -61,9 +60,9 @@ public class UserController {
     public Mono<User> createUser(@RequestBody User user) {
         log.info("Creating new user: {}", user.getName());
         if (Objects.isNull(user.getCreatedAt())) {
-            user.setCreatedAt(LocalDateTime.now());
+            user.setCreatedAt(Instant.now()); // Changed to Instant.now()
         }
-        user.setUpdatedAt(LocalDateTime.now());
+        user.setUpdatedAt(Instant.now()); // Changed to Instant.now()
         return userRepository.save(user)
             .doOnSuccess(u -> log.info("User created: {}", u.getId()))
             .doOnError(e -> log.error("Error creating user", e));
@@ -75,7 +74,7 @@ public class UserController {
         return userRepository.findById(id)
             .flatMap(existingUser -> {
                 existingUser.setName(user.getName());
-                existingUser.setUpdatedAt(LocalDateTime.now());
+                existingUser.setUpdatedAt(Instant.now()); // Changed to Instant.now()
                 return userRepository.save(existingUser);
             })
             .doOnSuccess(u -> log.info("User updated: {}", u.getId()))
@@ -102,4 +101,3 @@ public class UserController {
     public record PaginationMetadata(long totalItems, int itemsPerPage, int currentPage) {
     }
 }
-

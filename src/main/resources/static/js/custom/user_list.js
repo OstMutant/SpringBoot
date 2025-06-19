@@ -148,7 +148,8 @@ function validateInput(startId, endId, createdAtStart, createdAtEnd, updatedAtSt
  * @returns {string} - The HTML string for a table row.
  */
 function createRowHtml(value) {
-  // Ensure dates are valid before formatting
+  // Ensure dates are valid before formatting. Remove 'Z' if present, as Instant should already be correctly formatted.
+  // The Date constructor should handle ISO 8601 strings from Instant directly.
   const createdAt = value.createdAt ? new Date(value.createdAt).toLocaleString() : 'N/A';
   const updatedAt = value.updatedAt ? new Date(value.updatedAt).toLocaleString() : 'N/A';
 
