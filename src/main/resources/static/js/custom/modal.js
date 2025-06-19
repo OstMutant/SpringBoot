@@ -42,7 +42,7 @@
       this.$userModalLabel.text('Add User');
       this.$modalName.val('');
       this.userIdToEdit = null;
-      this.hideError(this.$modalName, this.$modalNameError); // Clear any previous errors
+      window.InputValidator.hideError(this.$modalName, this.$modalNameError); // Use InputValidator to clear errors
       // The #triggerButton (in HTML) already has data-bs-toggle="modal" and data-bs-target="#userModal",
       // so Bootstrap handles showing the modal when clicked. This function only prepares its content.
     }
@@ -56,7 +56,7 @@
         this.userIdToEdit = userId;
         this.$userModalLabel.text('Edit User');
         this.$modalName.val(user.name);
-        this.hideError(this.$modalName, this.$modalNameError); // Clear any previous errors
+        window.InputValidator.hideError(this.$modalName, this.$modalNameError); // Use InputValidator to clear errors
 
         // Always use the Bootstrap instance to show the modal
         if (this.userModalInstance) {
@@ -72,43 +72,26 @@
       }
     }
 
-    // Shows a validation error directly on the input field (now internal helper, could be removed if all validation goes to InputValidator)
-    showInputError(inputElement, errorElement, message) {
-      inputElement.addClass('is-invalid');
-      errorElement.text(message).show();
-    }
-
-    // Hides a validation error on the input field (now internal helper, could be removed if all validation goes to InputValidator)
-    hideError(inputElement, errorElement) {
-      inputElement.removeClass('is-invalid');
-      errorElement.hide();
-    }
-
     // Handles input changes in the name field for validation feedback, using InputValidator
     handleNameInput() {
       const userName = this.$modalName.val().trim();
-      const isValid = window.InputValidator.validateName(userName, (message) => {
-        this.showInputError(this.$modalName, this.$modalNameError, message);
-      });
-      if (isValid) {
-        this.hideError(this.$modalName, this.$modalNameError);
-      }
+      // Pass the elements to InputValidator so it can handle visual feedback directly
+      window.InputValidator.validateName(userName, window.showUserFeedback, this.$modalName, this.$modalNameError);
     }
 
     // Saves (adds or updates) a user
     async saveUser() {
       const userName = this.$modalName.val().trim();
 
-      // Use InputValidator for name validation
-      const isNameValid = window.InputValidator.validateName(userName, (message) => {
-        this.showInputError(this.$modalName, this.$modalNameError, message);
-      });
+      // Use InputValidator for name validation, passing elements for visual feedback
+      const isNameValid = window.InputValidator.validateName(userName, window.showUserFeedback, this.$modalName, this.$modalNameError);
 
       if (!isNameValid) {
         return;
       }
 
-      this.hideError(this.$modalName, this.$modalNameError);
+      // No need to call hideError here as InputValidator.validateName handles it if valid
+      // this.hideError(this.$modalName, this.$modalNameError);
 
       const user = {
         name: userName

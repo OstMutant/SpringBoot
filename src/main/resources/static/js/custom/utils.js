@@ -126,13 +126,13 @@
   }
 
   /**
-   * InputValidator class for validating various input fields.
+   * InputValidator class for validating various input fields and displaying validation feedback.
    */
   class InputValidator {
     /**
      * Validates filter input fields.
      * @param {object} filters - An object containing filter values.
-     * @param {function} showErrorCallback - Callback function to display an error message.
+     * @param {function} showErrorCallback - Callback function to display an error message (e.g., a toast).
      * @returns {boolean} - True if all inputs are valid, false otherwise.
      */
     validateUserFilters(filters, showErrorCallback) {
@@ -205,15 +205,46 @@
     /**
      * Validates a name string.
      * @param {string} name - The name string to validate.
-     * @param {function} showErrorCallback - Callback function to display an error message.
+     * @param {function} showErrorCallback - Callback function to display an error message (e.g., for general feedback).
+     * @param {object} [$inputElement=null] - Optional: jQuery element of the input field to apply visual feedback.
+     * @param {object} [$errorElement=null] - Optional: jQuery element of the error message container for the input.
      * @returns {boolean} - True if the name is valid, false otherwise.
      */
-    validateName(name, showErrorCallback) {
+    validateName(name, showErrorCallback, $inputElement = null, $errorElement = null) {
       if (!name || name.trim() === '') {
-        showErrorCallback('Name cannot be empty.');
+        const message = 'Name cannot be empty.';
+        if ($inputElement && $errorElement) {
+          this.showInputError($inputElement, $errorElement, message);
+        } else {
+          showErrorCallback(message); // Fallback to general error display
+        }
         return false;
       }
+      if ($inputElement && $errorElement) {
+        this.hideError($inputElement, $errorElement);
+      }
       return true;
+    }
+
+    /**
+     * Shows a validation error directly on the input field and its error message element.
+     * @param {object} $inputElement - jQuery element of the input field.
+     * @param {object} $errorElement - jQuery element of the error message container.
+     * @param {string} message - The error message to display.
+     */
+    showInputError($inputElement, $errorElement, message) {
+      $inputElement.addClass('is-invalid');
+      $errorElement.text(message).show();
+    }
+
+    /**
+     * Hides a validation error on the input field and its error message element.
+     * @param {object} $inputElement - jQuery element of the input field.
+     * @param {object} $errorElement - jQuery element of the error message container.
+     */
+    hideError($inputElement, $errorElement) {
+      $inputElement.removeClass('is-invalid');
+      $errorElement.hide();
     }
   }
 
