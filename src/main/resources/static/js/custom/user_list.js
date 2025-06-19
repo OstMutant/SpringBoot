@@ -4,8 +4,11 @@ let $loadButton, $tableBody, $startId, $endId;
 let $paginationInfo, $paginationList;
 let $tableHeaders; // Reference to table headers
 
-// New filter elements
+// Filter elements
 let $filterName, $filterCreatedAtStart, $filterCreatedAtEnd, $filterUpdatedAtStart, $filterUpdatedAtEnd;
+
+// New clear filters button
+let $clearFiltersButton;
 
 let currentPage = 0;
 const pageSize = 10;
@@ -75,7 +78,7 @@ function stopLoading() {
 }
 
 function showError(message) {
-  alert(message);
+  alert(message); // Keep alert for other validation types or unexpected issues
 }
 
 function validateInput(startId, endId, createdAtStart, createdAtEnd, updatedAtStart, updatedAtEnd) {
@@ -91,12 +94,46 @@ function validateInput(startId, endId, createdAtStart, createdAtEnd, updatedAtSt
     showError('Start ID cannot be greater than End ID!');
     return false;
   }
-  // Validate date ranges
-  if (createdAtStart && createdAtEnd && new Date(createdAtStart) > new Date(createdAtEnd)) {
+  // The interactive min/max attributes on date inputs already handle most date range validation visually.
+  // This server-side validation here acts as a fallback for manually typed invalid dates.
+  let dateCreatedAtStart = null;
+  if (createdAtStart) {
+    dateCreatedAtStart = new Date(createdAtStart);
+    if (isNaN(dateCreatedAtStart.getTime())) {
+      showError('Invalid Created At Start date format!');
+      return false;
+    }
+  }
+  let dateCreatedAtEnd = null;
+  if (createdAtEnd) {
+    dateCreatedAtEnd = new Date(createdAtEnd);
+    if (isNaN(dateCreatedAtEnd.getTime())) {
+      showError('Invalid Created At End date format!');
+      return false;
+    }
+  }
+  if (dateCreatedAtStart && dateCreatedAtEnd && dateCreatedAtStart > dateCreatedAtEnd) {
     showError('Created At Start date cannot be after Created At End date!');
     return false;
   }
-  if (updatedAtStart && updatedAtEnd && new Date(updatedAtStart) > new Date(updatedAtEnd)) {
+
+  let dateUpdatedAtStart = null;
+  if (updatedAtStart) {
+    dateUpdatedAtStart = new Date(updatedAtStart);
+    if (isNaN(dateUpdatedAtStart.getTime())) {
+      showError('Invalid Updated At Start date format!');
+      return false;
+    }
+  }
+  let dateUpdatedAtEnd = null;
+  if (updatedAtEnd) {
+    dateUpdatedAtEnd = new Date(updatedAtEnd);
+    if (isNaN(dateUpdatedAtEnd.getTime())) {
+      showError('Invalid Updated At End date format!');
+      return false;
+    }
+  }
+  if (dateUpdatedAtStart && dateUpdatedAtEnd && dateUpdatedAtStart > dateUpdatedAtEnd) {
     showError('Updated At Start date cannot be after Updated At End date!');
     return false;
   }
@@ -312,6 +349,43 @@ function loadUsers(page = 0) {
   });
 }
 
+/**
+ * Clears all filter input fields and reloads the user list.
+ * Only proceeds if at least one filter field has a value.
+ */
+function clearFilters() {
+  const hasActiveFilters =
+  $startId.val() !== '' ||
+  $endId.val() !== '' ||
+  $filterName.val() !== '' ||
+  $filterCreatedAtStart.val() !== '' ||
+  $filterCreatedAtEnd.val() !== '' ||
+  $filterUpdatedAtStart.val() !== '' ||
+  $filterUpdatedAtEnd.val() !== '';
+
+  if (!hasActiveFilters) {
+    console.log('No active filters to clear.');
+    return; // Do nothing if no filters are set
+  }
+
+  $startId.val('');
+  $endId.val('');
+  $filterName.val('');
+  $filterCreatedAtStart.val('');
+  $filterCreatedAtEnd.val('');
+  $filterUpdatedAtStart.val('');
+  $filterUpdatedAtEnd.val('');
+
+  // Clear min/max attributes for date inputs
+  $filterCreatedAtStart.removeAttr('max');
+  $filterCreatedAtEnd.removeAttr('min');
+  $filterUpdatedAtStart.removeAttr('max');
+  $filterUpdatedAtEnd.removeAttr('min');
+
+  loadUsers(0); // Reload table from the first page without filters
+}
+
+
 function goToPage(page) {
   if (page >= 0 && page < totalPages && page !== currentPage) {
     loadUsers(page);
@@ -356,6 +430,7 @@ $(document).ready(() => {
   $filterCreatedAtEnd = $('#filterCreatedAtEnd');
   $filterUpdatedAtStart = $('#filterUpdatedAtStart');
   $filterUpdatedAtEnd = $('#filterUpdatedAtEnd');
+  $clearFiltersButton = $('#clearFiltersButton'); // Initialize clear filters button
 
 
   // Initial load users with default sorting
@@ -378,6 +453,49 @@ $(document).ready(() => {
   $loadButton.on('click', () => {
     loadUsers(0); // Reload from first page on Load button click
   });
+
+  // Event handler for Clear Filters button
+  $clearFiltersButton.on('click', () => {
+    clearFilters();
+  });
+
+  // Add change event listeners for interactive date validation
+  $filterCreatedAtStart.on('change', function() {
+    const startDate = $(this).val();
+    if (startDate) {
+      $filterCreatedAtEnd.attr('min', startDate);
+    } else {
+      $filterCreatedAtEnd.removeAttr('min');
+    }
+  });
+
+  $filterCreatedAtEnd.on('change', function() {
+    const endDate = $(this).val();
+    if (endDate) {
+      $filterCreatedAtStart.attr('max', endDate);
+    } else {
+      $filterCreatedAtStart.removeAttr('max');
+    }
+  });
+
+  $filterUpdatedAtStart.on('change', function() {
+    const startDate = $(this).val();
+    if (startDate) {
+      $filterUpdatedAtEnd.attr('min', startDate);
+    } else {
+      $filterUpdatedAtEnd.removeAttr('min');
+    }
+  });
+
+  $filterUpdatedAtEnd.on('change', function() {
+    const endDate = $(this).val();
+    if (endDate) {
+      $filterUpdatedAtStart.attr('max', endDate);
+    } else {
+      $filterUpdatedAtStart.removeAttr('max');
+    }
+  });
+
 
   // Listener for custom event (userAdded, userUpdated)
   $(document).on('userAdded userUpdated', function(event, data) {
