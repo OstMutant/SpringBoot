@@ -67,12 +67,63 @@
       confirmModalInstance.hide();
     });
 
+    // Corrected: Dispose the Bootstrap modal instance before removing the DOM element
     $confirmModal.on('hidden.bs.modal', () => {
+      confirmModalInstance.dispose(); // Dispose Bootstrap instance
       $confirmModal.remove(); // Clean up modal from DOM after it's hidden
     });
 
     confirmModalInstance.show();
   };
+
+  /**
+   * Event Bus for decoupling communication between modules.
+   */
+  class EventBus {
+    constructor() {
+      this.listeners = {};
+    }
+
+    /**
+     * Subscribes to an event.
+     * @param {string} event - The name of the event.
+     * @param {function} callback - The callback function to execute when the event is emitted.
+     */
+    on(event, callback) {
+      if (!this.listeners[event]) {
+        this.listeners[event] = [];
+      }
+      this.listeners[event].push(callback);
+    }
+
+    /**
+     * Unsubscribes from an event.
+     * @param {string} event - The name of the event.
+     * @param {function} callback - The callback function to remove.
+     */
+    off(event, callback) {
+      if (!this.listeners[event]) return;
+      this.listeners[event] = this.listeners[event].filter(
+        (listener) => listener !== callback
+      );
+    }
+
+    /**
+     * Emits an event with optional data.
+     * @param {string} event - The name of the event to emit.
+     * @param {*} data - Optional data to pass to the listeners.
+     */
+    emit(event, data) {
+      if (!this.listeners[event]) return;
+      this.listeners[event].forEach((callback) => {
+        try {
+          callback(data);
+        } catch (e) {
+          console.error(`Error in event listener for ${event}:`, e);
+        }
+      });
+    }
+  }
 
   /**
    * API service module for user-related operations.
@@ -177,4 +228,5 @@
   window.showUserFeedback = showUserFeedback;
   window.showConfirmationModal = showConfirmationModal;
   window.Api = Api; // Expose the API service globally
+  window.EventBus = new EventBus(); // Expose the EventBus globally
 })();

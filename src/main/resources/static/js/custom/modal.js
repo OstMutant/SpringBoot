@@ -120,12 +120,12 @@
           $('#userModal').modal('hide');
         }
 
-        // Trigger custom events and show user feedback
+        // Emit custom event using EventBus
         if (this.userIdToEdit) {
-          $(document).trigger('userUpdated', responseData);
+          window.EventBus.emit('user:updated', responseData); // Emit event for user update
           window.showUserFeedback('User updated successfully!', 'success');
         } else {
-          $(document).trigger('userAdded', responseData);
+          window.EventBus.emit('user:added', responseData); // Emit event for user added
           window.showUserFeedback('User added successfully!', 'success');
         }
       } catch (error) {

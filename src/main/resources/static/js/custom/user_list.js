@@ -231,7 +231,11 @@
       this.$loadButton.on('click', this.loadUsers.bind(this, 0));
       this.$clearFiltersButton.on('click', this.clearFilters.bind(this));
       this.$paginationList.on('click', '.page-link', this.handlePaginationClick.bind(this));
-      $(document).on('userAdded userUpdated', this.handleUserUpdateEvent.bind(this));
+
+      // Listen to custom events via EventBus
+      window.EventBus.on('user:added', this.handleUserUpdateEvent.bind(this));
+      window.EventBus.on('user:updated', this.handleUserUpdateEvent.bind(this));
+
       $(document).on('click', '.edit-button', this.handleEditButtonClick.bind(this));
       $(document).on('click', '.delete-button', this.handleDeleteButtonClick.bind(this));
       $('thead').on('click', 'th[data-sort-field]', this.handleSortHeaderClick.bind(this));
@@ -517,8 +521,8 @@
     }
 
     // Handles user added/updated events to reload the table
-    handleUserUpdateEvent(event, data) {
-      console.log(`Event ${event.type} triggered with data:`, data);
+    handleUserUpdateEvent(data) { // Removed 'event' parameter as EventBus only passes data
+      console.log(`User data changed (via EventBus):`, data);
       this.loadUsers(this.currentPage);
     }
   }
