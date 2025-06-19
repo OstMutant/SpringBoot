@@ -4,6 +4,9 @@ let $loadButton, $tableBody, $startId, $endId;
 let $paginationInfo, $paginationList;
 let $tableHeaders; // Reference to table headers
 
+// New filter elements
+let $filterName, $filterCreatedAtStart, $filterCreatedAtEnd, $filterUpdatedAtStart, $filterUpdatedAtEnd;
+
 let currentPage = 0;
 const pageSize = 10;
 let totalItems = 0;
@@ -13,8 +16,6 @@ let totalPages = 0;
 // Default sort: 'createdAt' descending, as per user request
 let currentSortField = 'createdAt';
 let currentSortDirection = 'desc';
-
-// REMOVED: SVG paths for sort icons (now using direct paths to external files)
 
 function updatePaginationInfo() {
   if (totalItems === 0) {
@@ -77,7 +78,7 @@ function showError(message) {
   alert(message);
 }
 
-function validateInput(startId, endId) {
+function validateInput(startId, endId, createdAtStart, createdAtEnd, updatedAtStart, updatedAtEnd) {
   if (startId !== null && isNaN(startId)) {
     showError('Start ID must be a number!');
     return false;
@@ -88,6 +89,15 @@ function validateInput(startId, endId) {
   }
   if (startId !== null && endId !== null && startId > endId) {
     showError('Start ID cannot be greater than End ID!');
+    return false;
+  }
+  // Validate date ranges
+  if (createdAtStart && createdAtEnd && new Date(createdAtStart) > new Date(createdAtEnd)) {
+    showError('Created At Start date cannot be after Created At End date!');
+    return false;
+  }
+  if (updatedAtStart && updatedAtEnd && new Date(updatedAtStart) > new Date(updatedAtEnd)) {
+    showError('Updated At Start date cannot be after Updated At End date!');
     return false;
   }
   return true;
@@ -190,8 +200,14 @@ function loadUsers(page = 0) {
 
   const startId = $startId.val() ? parseInt($startId.val()) : null;
   const endId = $endId.val() ? parseInt($endId.val()) : null;
+  const filterName = $filterName.val();
+  const filterCreatedAtStart = $filterCreatedAtStart.val();
+  const filterCreatedAtEnd = $filterCreatedAtEnd.val();
+  const filterUpdatedAtStart = $filterUpdatedAtStart.val();
+  const filterUpdatedAtEnd = $filterUpdatedAtEnd.val();
 
-  if (!validateInput(startId, endId)) {
+
+  if (!validateInput(startId, endId, filterCreatedAtStart, filterCreatedAtEnd, filterUpdatedAtStart, filterUpdatedAtEnd)) {
     stopLoading();
     renderPaginationControls();
     updateSortIndicators(); // Ensure indicators are updated even if validation fails
@@ -202,12 +218,33 @@ function loadUsers(page = 0) {
   let url = '/users'; // Target the GET /users endpoint
   const params = new URLSearchParams(); // Use URLSearchParams to build query string
 
-  // Add filter parameters if they exist
+  // Add ID filter parameters
   if (startId !== null) {
     params.append('startId', startId);
   }
   if (endId !== null) {
     params.append('endId', endId);
+  }
+
+  // Add Name filter parameter (for partial matching)
+  if (filterName) {
+    params.append('nameFilter', filterName);
+  }
+
+  // Add Created At date range filters
+  if (filterCreatedAtStart) {
+    params.append('createdAtStart', filterCreatedAtStart);
+  }
+  if (filterCreatedAtEnd) {
+    params.append('createdAtEnd', filterCreatedAtEnd);
+  }
+
+  // Add Updated At date range filters
+  if (filterUpdatedAtStart) {
+    params.append('updatedAtStart', filterUpdatedAtStart);
+  }
+  if (filterUpdatedAtEnd) {
+    params.append('updatedAtEnd', filterUpdatedAtEnd);
   }
 
   // Add sort parameter based on current sort state
@@ -312,6 +349,14 @@ $(document).ready(() => {
   $paginationInfo = $('#paginationInfo');
   $paginationList = $('#paginationList');
   $tableHeaders = $('th[data-sort-field]'); // Select sortable headers
+
+  // Initialize new filter elements
+  $filterName = $('#filterName');
+  $filterCreatedAtStart = $('#filterCreatedAtStart');
+  $filterCreatedAtEnd = $('#filterCreatedAtEnd');
+  $filterUpdatedAtStart = $('#filterUpdatedAtStart');
+  $filterUpdatedAtEnd = $('#filterUpdatedAtEnd');
+
 
   // Initial load users with default sorting
   loadUsers(0);

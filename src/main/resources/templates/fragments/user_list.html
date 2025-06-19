@@ -1,25 +1,44 @@
 <div data-th-fragment="userList">
 
-  <!-- Controls: Add Button, ID fields, and Load button -->
-  <div class="d-flex align-items-center mb-3 mt-4"> <!-- Added mt-4 for top margin -->
+  <!-- Combined Controls: Add Button, ID filters, Name filter, Date filters, and Load button -->
+  <div class="d-flex align-items-center mb-3 mt-4" style="padding: 0 2.5%; max-width: 1200px; margin-left: auto; margin-right: auto; gap: 10px; flex-wrap: wrap;">
     <button id="triggerButton" type="button" class="btn btn-success me-3" data-bs-toggle="modal" data-bs-target="#userModal">
       Add
     </button>
-    <!-- Added labels for accessibility and Bootstrap classes for alignment -->
+
+    <!-- ID Filters -->
     <label for="startId" class="form-label visually-hidden">Start ID</label>
-    <input type="number" id="startId" placeholder="Start ID" min="1" class="form-control w-auto me-2" style="max-width: 150px;">
+    <input type="number" id="startId" placeholder="Start ID" min="1" class="form-control w-auto" style="max-width: 120px;">
+
     <label for="endId" class="form-label visually-hidden">End ID</label>
-    <input type="number" id="endId" placeholder="End ID" min="1" class="form-control w-auto me-2" style="max-width: 150px;">
+    <input type="number" id="endId" placeholder="End ID" min="1" class="form-control w-auto me-3" style="max-width: 120px;">
+
+    <!-- Name Filter -->
+    <label for="filterName" class="form-label visually-hidden">Filter by Name (partial)</label>
+    <input type="text" id="filterName" placeholder="Filter by Name" class="form-control flex-grow-1" style="min-width: 150px; max-width: 250px;">
+
+    <!-- Created At Date Range Filters -->
+    <label for="filterCreatedAtStart" class="form-label visually-hidden">Created After</label>
+    <input type="date" id="filterCreatedAtStart" title="Created After" class="form-control w-auto" style="min-width: 150px; max-width: 180px;">
+
+    <label for="filterCreatedAtEnd" class="form-label visually-hidden">Created Before</label>
+    <input type="date" id="filterCreatedAtEnd" title="Created Before" class="form-control w-auto me-3" style="min-width: 150px; max-width: 180px;">
+
+    <!-- Updated At Date Range Filters -->
+    <label for="filterUpdatedAtStart" class="form-label visually-hidden">Updated After</label>
+    <input type="date" id="filterUpdatedAtStart" title="Updated After" class="form-control w-auto" style="min-width: 150px; max-width: 180px;">
+
+    <label for="filterUpdatedAtEnd" class="form-label visually-hidden">Updated Before</label>
+    <input type="date" id="filterUpdatedAtEnd" title="Updated Before" class="form-control w-auto me-3" style="min-width: 150px; max-width: 180px;">
+
     <button id="loadButton" class="btn btn-primary">Load</button>
   </div>
 
   <!-- Table -->
   <div class="table-responsive">
-    <table class="table table-bordered table-hover"> <!-- Added table-bordered and table-hover for better visuals -->
+    <table class="table table-bordered table-hover">
       <thead>
       <tr>
-        <!-- Added data-sort-field attribute to enable sorting for these columns -->
-        <!-- The span.sort-indicator is where the SVG icon will be injected by JavaScript -->
         <th scope="col" data-sort-field="id">Id <span class="sort-icon"></span></th>
         <th scope="col" data-sort-field="name">Name <span class="sort-icon"></span></th>
         <th scope="col" data-sort-field="createdAt">Created At <span class="sort-icon"></span></th>

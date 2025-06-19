@@ -29,17 +29,34 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
     private Criteria buildCriteria(UserFilter filter) {
         List<Criteria> criteriaList = new ArrayList<>();
 
-        if (filter.getUsername() != null && !filter.getUsername().isBlank()) {
-            criteriaList.add(Criteria.where("name").like("%" + filter.getUsername() + "%").ignoreCase(true));
+        // Filtering by nameFilter (partial match, case-insensitive)
+        // UserFilter now uses 'nameFilter' instead of 'username'
+        if (filter.getNameFilter() != null && !filter.getNameFilter().isBlank()) {
+            // Using .like("%" + value + "%") for partial matching
+            criteriaList.add(Criteria.where("name").like("%" + filter.getNameFilter() + "%").ignoreCase(true));
         }
 
+        // Filtering by createdAt date range
         if (filter.getCreatedAtStart() != null) {
+            // Greater than or equal to start date
             criteriaList.add(Criteria.where("created_at").greaterThanOrEquals(filter.getCreatedAtStart()));
         }
         if (filter.getCreatedAtEnd() != null) {
+            // Less than or equal to end date
+            // For LocalDate, this implies up to the end of that day.
+            // If you need to include the full end day's time, you might need to adjust the LocalDate to LocalDateTime here.
             criteriaList.add(Criteria.where("created_at").lessThanOrEquals(filter.getCreatedAtEnd()));
         }
 
+        // Filtering by updatedAt date range (New fields)
+        if (filter.getUpdatedAtStart() != null) {
+            criteriaList.add(Criteria.where("updated_at").greaterThanOrEquals(filter.getUpdatedAtStart()));
+        }
+        if (filter.getUpdatedAtEnd() != null) {
+            criteriaList.add(Criteria.where("updated_at").lessThanOrEquals(filter.getUpdatedAtEnd()));
+        }
+
+        // Filtering by ID range
         if (filter.getStartId() != null && filter.getStartId() > 0) {
             criteriaList.add(Criteria.where("id").greaterThanOrEquals(filter.getStartId()));
         }
@@ -47,7 +64,7 @@ public class UserRepositoryCustomImpl implements UserRepositoryCustom {
             criteriaList.add(Criteria.where("id").lessThanOrEquals(filter.getEndId()));
         }
 
-        // Combine all criteria with AND
+        // Combine all criteria with AND. If criteriaList is empty, Criteria.empty() is returned.
         return criteriaList.stream().reduce(Criteria.empty(), Criteria::and);
     }
 
