@@ -1,158 +1,155 @@
 (function() {
-  // Private variables
-  let $saveButton, $modalName, $modalNameError, $userModalLabel, userIdToEdit;
-  let userModalInstance;
+  // Define the UserModal class
+  class UserModal {
+    constructor() {
+      // Initialize DOM elements
+      this.$saveButton = $('#saveButton');
+      this.$modalName = $('#modalName');
+      this.$modalNameError = $('#modalNameError');
+      this.$userModalLabel = $('#userModalLabel');
+      this.userIdToEdit = null;
 
-  // Function to open the modal for adding a user
-  const openModalForAdd = () => {
-    $userModalLabel.text('Add User');
-    $modalName.val('');
-    userIdToEdit = null;
-  };
+      // Get the modal DOM element
+      const userModalElement = document.getElementById('userModal');
 
-  // Function to open the modal for editing a user
-  const openModalForEdit = async (userId) => {
-    try {
-      const response = await fetch(`/users/${userId}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const user = await response.json();
+      // Initialize Bootstrap Modal instance
+      if (userModalElement && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        this.userModalInstance = new bootstrap.Modal(userModalElement);
 
-      userIdToEdit = userId;
-      $userModalLabel.text('Edit User');
-      $modalName.val(user.name);
+        // Add event listener for when the modal is fully hidden
+        userModalElement.addEventListener('hidden.bs.modal', () => {
+          // Ensure no element within the modal retains focus before moving it
+          if (document.activeElement && userModalElement.contains(document.activeElement)) {
+            document.activeElement.blur();
+          }
+          // Return focus to the button that likely opened the modal after a short delay
+          setTimeout(() => {
+            $('#triggerButton').focus();
+          }, 0);
+        });
 
-      if (userModalInstance) {
-        userModalInstance.show();
       } else {
-        $('#userModal').modal('show');
-      }
-    } catch (error) {
-      console.error('Failed to fetch user for edit:', error);
-      // Use global showUserFeedback for API errors
-      window.showUserFeedback('Failed to load user data for editing. Please try again later.', 'danger');
-    }
-  };
-
-  // Function to show validation error
-  const showError = (message) => {
-    // This showError is for local validation messages, not general API errors
-    // Use window.showUserFeedback for general errors
-    window.showUserFeedback(message, 'danger');
-  };
-
-  // Function to hide validation error
-  const hideError = (inputElement, errorElement) => {
-    inputElement.removeClass('is-invalid');
-    errorElement.hide();
-  };
-
-  // Function to save (add or update) a user
-  const saveUser = async () => {
-    const userName = $modalName.val().trim();
-
-    if (!userName) {
-      showError('Name cannot be empty.'); // Use local showError for validation
-      return;
-    }
-
-    hideError($modalName, $modalNameError);
-
-    const user = {
-      name: userName
-    };
-    let url = '/users';
-    let method = 'POST';
-
-    if (userIdToEdit) {
-      // Edit user
-      url = `/users/${userIdToEdit}`;
-      method = 'PUT';
-    }
-
-    try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(user)
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
+        console.warn("Bootstrap Modal not found or element not ready. Falling back to jQuery .modal().");
       }
 
-      const responseData = await response.json();
-
-      if (userModalInstance) {
-        userModalInstance.hide();
-      } else {
-        $('#userModal').modal('hide');
-      }
-
-      // Trigger custom events
-      if (userIdToEdit) {
-        $(document).trigger('userUpdated', responseData);
-        window.showUserFeedback('User updated successfully!', 'success'); // Use global showUserFeedback
-      } else {
-        $(document).trigger('userAdded', responseData);
-        window.showUserFeedback('User added successfully!', 'success'); // Use global showUserFeedback
-      }
-    } catch (error) {
-      console.error('Failed to save user: ', error);
-      window.showUserFeedback('Failed to save user. Please try again later.', 'danger'); // Use global showUserFeedback
+      // Attach event listeners
+      this.$saveButton.on('click', this.saveUser.bind(this)); // Bind 'this' to the class instance
+      this.$modalName.on('input', this.handleNameInput.bind(this)); // Bind 'this'
     }
-  };
 
-  // Initialize DOM elements and event listeners when the document is ready
-  $(document).ready(() => {
-    $saveButton = $('#saveButton');
-    $modalName = $('#modalName');
-    $modalNameError = $('#modalNameError');
-    $userModalLabel = $('#userModalLabel');
-    userIdToEdit = null;
+    // Opens the modal for adding a new user
+    openModalForAdd() {
+      this.$userModalLabel.text('Add User');
+      this.$modalName.val('');
+      this.userIdToEdit = null;
+      this.hideError(this.$modalName, this.$modalNameError); // Clear any previous errors
+      // The #triggerButton (in HTML) already has data-bs-toggle="modal" and data-bs-target="#userModal",
+      // so Bootstrap handles showing the modal when clicked. This function only prepares its content.
+    }
 
-    const userModalElement = document.getElementById('userModal');
-    if (userModalElement && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-      userModalInstance = new bootstrap.Modal(userModalElement);
+    // Opens the modal for editing an existing user
+    async openModalForEdit(userId) {
+      try {
+        // Use the global Api service to fetch user data
+        const user = await window.Api.fetchUser(userId);
 
-      userModalElement.addEventListener('hidden.bs.modal', () => {
-        if (document.activeElement && userModalElement.contains(document.activeElement)) {
-          document.activeElement.blur();
+        this.userIdToEdit = userId;
+        this.$userModalLabel.text('Edit User');
+        this.$modalName.val(user.name);
+        this.hideError(this.$modalName, this.$modalNameError); // Clear any previous errors
+
+        // Always use the Bootstrap instance to show the modal
+        if (this.userModalInstance) {
+          this.userModalInstance.show();
+        } else {
+          // Fallback for unexpected cases
+          $('#userModal').modal('show');
         }
-        setTimeout(() => {
-          $('#triggerButton').focus();
-        }, 0);
-      });
-
-    } else {
-      console.warn("Bootstrap Modal not found or element not ready. Falling back to jQuery .modal().");
+      } catch (error) {
+        console.error('Failed to fetch user for edit:', error);
+        // Use global showUserFeedback for API errors
+        window.showUserFeedback('Failed to load user data for editing. Please try again later.', 'danger');
+      }
     }
 
-    $saveButton.on('click', saveUser);
+    // Shows a validation error directly on the input field
+    showInputError(inputElement, errorElement, message) {
+      inputElement.addClass('is-invalid');
+      errorElement.text(message).show();
+    }
 
-    $(document).on('click', '.edit-button', function() {
-      const userId = $(this).data('id');
-      openModalForEdit(userId);
-    });
+    // Hides a validation error on the input field
+    hideError(inputElement, errorElement) {
+      inputElement.removeClass('is-invalid');
+      errorElement.hide();
+    }
 
-    $('#triggerButton').on('click', openModalForAdd);
-
-    $modalName.on('input', () => {
-      if ($modalName.val().trim()) {
-        hideError($modalName, $modalNameError);
+    // Handles input changes in the name field for validation feedback
+    handleNameInput() {
+      if (this.$modalName.val().trim()) {
+        this.hideError(this.$modalName, this.$modalNameError);
       } else {
         // Keep this local as it applies directly to the input field
-        $modalName.addClass('is-invalid');
-        $modalNameError.text('Name cannot be empty.').show();
+        this.$modalName.addClass('is-invalid');
+        this.$modalNameError.text('Name cannot be empty.').show();
       }
-    });
-  });
+    }
 
-  // Expose public functions to the global scope (window) if other scripts need to access them
-  window.openModalForAdd = openModalForAdd;
-  window.openModalForEdit = openModalForEdit;
+    // Saves (adds or updates) a user
+    async saveUser() {
+      const userName = this.$modalName.val().trim();
+
+      if (!userName) {
+        this.showInputError(this.$modalName, this.$modalNameError, 'Name cannot be empty.');
+        return;
+      }
+
+      this.hideError(this.$modalName, this.$modalNameError);
+
+      const user = {
+        name: userName
+      };
+
+      try {
+        // Use the global Api service to save user data
+        const responseData = await window.Api.saveUser(user, this.userIdToEdit);
+
+        if (this.userModalInstance) {
+          this.userModalInstance.hide();
+        } else {
+          $('#userModal').modal('hide');
+        }
+
+        // Trigger custom events and show user feedback
+        if (this.userIdToEdit) {
+          $(document).trigger('userUpdated', responseData);
+          window.showUserFeedback('User updated successfully!', 'success');
+        } else {
+          $(document).trigger('userAdded', responseData);
+          window.showUserFeedback('User added successfully!', 'success');
+        }
+      } catch (error) {
+        console.error('Failed to save user: ', error);
+        window.showUserFeedback('Failed to save user. Please try again later.', 'danger');
+      }
+    }
+  }
+
+  // Initialize the UserModal component when the document is ready
+  $(document).ready(() => {
+    const userModal = new UserModal();
+
+    // Attach event listeners for external triggers
+    $(document).on('click', '.edit-button', function() {
+      const userId = $(this).data('id');
+      userModal.openModalForEdit(userId);
+    });
+
+    $('#triggerButton').on('click', () => userModal.openModalForAdd());
+
+    // Expose public methods globally if other modules (like user_list.js) need to access them
+    // This maintains compatibility with how user_list.js currently calls openModalForEdit
+    window.openModalForAdd = userModal.openModalForAdd.bind(userModal);
+    window.openModalForEdit = userModal.openModalForEdit.bind(userModal);
+  });
 })();

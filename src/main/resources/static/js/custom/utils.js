@@ -2,6 +2,7 @@
   // Centralized configuration for utilities (e.g., for feedback duration)
   const UtilsConfig = {
     feedbackDuration: 5000, // Milliseconds for toast messages auto-dismissal
+    apiBaseUrl: '/users', // Base URL for user API endpoints, duplicated from user_list.js Config for shared API calls
   };
 
   /**
@@ -73,7 +74,107 @@
     confirmModalInstance.show();
   };
 
-  // Expose public utility functions to the global scope (window)
+  /**
+   * API service module for user-related operations.
+   */
+  const Api = {
+    UtilsConfig: UtilsConfig, // Expose UtilsConfig as a property of Api
+    /**
+     * Fetches a single user by ID.
+     * @param {number} userId - The ID of the user to fetch.
+     * @returns {Promise<Object>} - A promise that resolves with the user data.
+     * @throws {Error} - If the network request fails or response is not OK.
+     */
+    fetchUser: async (userId) => {
+      const response = await fetch(`${UtilsConfig.apiBaseUrl}/${userId}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch user (ID: ${userId}): ${response.status} - ${errorText}`);
+      }
+      return response.json();
+    },
+
+    /**
+     * Saves (creates or updates) a user.
+     * @param {Object} user - The user object to save.
+     * @param {number|null} userId - The ID of the user if updating, null if creating.
+     * @returns {Promise<Object>} - A promise that resolves with the saved user data.
+     * @throws {Error} - If the network request fails or response is not OK.
+     */
+    saveUser: async (user, userId) => {
+      let url = UtilsConfig.apiBaseUrl;
+      let method = 'POST';
+
+      if (userId) {
+        url = `${UtilsConfig.apiBaseUrl}/${userId}`;
+        method = 'PUT';
+      }
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(user)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to save user: ${response.status} - ${errorText}`);
+      }
+      return response.json();
+    },
+
+    /**
+     * Deletes a user by ID.
+     * @param {number} userId - The ID of the user to delete.
+     * @returns {Promise<void>} - A promise that resolves when the user is deleted.
+     * @throws {Error} - If the network request fails or response is not OK.
+     */
+    deleteUser: async (userId) => {
+      const response = await fetch(`${UtilsConfig.apiBaseUrl}/${userId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete user (ID: ${userId}): ${response.status} - ${errorText}`);
+      }
+      // No content expected for delete success
+    },
+
+    /**
+     * Fetches a list of users with pagination and filtering.
+     * @param {Object} params - Query parameters for fetching users.
+     * @param {number} page - Current page number.
+     * @param {number} pageSize - Number of items per page.
+     * @param {string} sortField - Field to sort by.
+     * @param {string} sortDirection - Sort direction ('asc' or 'desc').
+     * @returns {Promise<Object>} - A promise that resolves with user data and pagination metadata.
+     * Note: This currently does not handle streaming from oboe.js.
+     * This is a placeholder for a non-streaming fetch approach.
+     * @throws {Error} - If the network request fails or response is not OK.
+     */
+    fetchUsers: async (queryParams) => {
+      const params = new URLSearchParams(queryParams);
+      const url = `${UtilsConfig.apiBaseUrl}?${params.toString()}`;
+
+      // NOTE: This fetchUsers implementation is for a non-streaming API.
+      // Your current loadUsers in user_list.js uses oboe.js for streaming.
+      // This part would require significant changes to loadUsers to use fetch stream API,
+      // or to switch the backend to return full JSON.
+      // For now, this serves as a general fetchUsers example.
+      const response = await fetch(url);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch users: ${response.status} - ${errorText}`);
+      }
+      return response.json(); // Assuming the API returns full JSON for non-streaming.
+    }
+  };
+
+
+  // Expose public utility functions and the Api module to the global scope (window)
   window.showUserFeedback = showUserFeedback;
   window.showConfirmationModal = showConfirmationModal;
+  window.Api = Api; // Expose the API service globally
 })();
