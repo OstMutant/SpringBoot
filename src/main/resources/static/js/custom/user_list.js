@@ -31,14 +31,15 @@
 
     /**
      * Renders pagination controls dynamically.
+     * @param {number} totalItems - Total number of items (added parameter)
      * @param {number} currentPage - Current page index.
      * @param {number} totalPages - Total number of pages.
      */
-    renderPaginationControls(currentPage, totalPages) {
+    renderPaginationControls(totalItems, currentPage, totalPages) {
       this.$paginationList.empty();
 
       if (totalPages <= 1) {
-        this.updatePaginationInfo(0, 0, 0); // Reset info if no pagination needed
+        this.updatePaginationInfo(totalItems, currentPage, totalPages); // Use passed totalItems
         return;
       }
 
@@ -69,7 +70,7 @@
         </li>
       `);
 
-      this.updatePaginationInfo(null, currentPage, totalPages); // Update info with actual data
+      this.updatePaginationInfo(totalItems, currentPage, totalPages); // Use passed totalItems
     }
 
     /**
@@ -302,7 +303,7 @@
 
       if (!window.InputValidator.validateUserFilters(filterValues, this.showError)) {
         this.stopLoading();
-        this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages); // Pass totalItems
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         this.renderer.setLoadingState(false); // Optimized: use setLoadingState
         return;
@@ -340,7 +341,7 @@
           this.totalItems = record.value.totalItems;
           this.totalPages = Math.ceil(this.totalItems / window.GlobalConfig.pagination.pageSize); // Use GlobalConfig
           this.currentPage = record.value.currentPage;
-          this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
+          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages); // Pass totalItems
 
           console.log('Received Pagination Metadata:', record.value);
         } else if (record.type === 'done') {
@@ -386,7 +387,7 @@
         this.totalItems = 0;
         this.totalPages = 0;
         this.currentPage = 0;
-        this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages); // Pass totalItems
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         this.renderer.setLoadingState(false); // Optimized: use setLoadingState
         this.renderer.clearTableBody();
