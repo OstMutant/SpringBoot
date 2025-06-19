@@ -8,8 +8,6 @@
     $userModalLabel.text('Add User');
     $modalName.val('');
     userIdToEdit = null;
-    // The #triggerButton (in HTML) already has data-bs-toggle="modal" and data-bs-target="#userModal",
-    // so Bootstrap handles showing the modal when clicked. This function only prepares its content.
   };
 
   // Function to open the modal for editing a user
@@ -25,23 +23,23 @@
       $userModalLabel.text('Edit User');
       $modalName.val(user.name);
 
-      // Always use the Bootstrap instance to show the modal
       if (userModalInstance) {
         userModalInstance.show();
       } else {
-        // Fallback for unexpected cases
         $('#userModal').modal('show');
       }
     } catch (error) {
       console.error('Failed to fetch user for edit:', error);
-      // Optionally show a user-friendly error message
+      // Use global showUserFeedback for API errors
+      window.showUserFeedback('Failed to load user data for editing. Please try again later.', 'danger');
     }
   };
 
   // Function to show validation error
-  const showError = (inputElement, errorElement, message) => {
-    inputElement.addClass('is-invalid');
-    errorElement.text(message).show();
+  const showError = (message) => {
+    // This showError is for local validation messages, not general API errors
+    // Use window.showUserFeedback for general errors
+    window.showUserFeedback(message, 'danger');
   };
 
   // Function to hide validation error
@@ -55,7 +53,7 @@
     const userName = $modalName.val().trim();
 
     if (!userName) {
-      showError($modalName, $modalNameError, 'Name cannot be empty.');
+      showError('Name cannot be empty.'); // Use local showError for validation
       return;
     }
 
@@ -87,7 +85,7 @@
         throw new Error(`HTTP error! Status: ${response.status}, Details: ${errorText}`);
       }
 
-      const responseData = await response.json(); // Assuming success returns JSON
+      const responseData = await response.json();
 
       if (userModalInstance) {
         userModalInstance.hide();
@@ -98,12 +96,14 @@
       // Trigger custom events
       if (userIdToEdit) {
         $(document).trigger('userUpdated', responseData);
+        window.showUserFeedback('User updated successfully!', 'success'); // Use global showUserFeedback
       } else {
         $(document).trigger('userAdded', responseData);
+        window.showUserFeedback('User added successfully!', 'success'); // Use global showUserFeedback
       }
     } catch (error) {
       console.error('Failed to save user: ', error);
-      // Show user-friendly error message
+      window.showUserFeedback('Failed to save user. Please try again later.', 'danger'); // Use global showUserFeedback
     }
   };
 
@@ -119,17 +119,13 @@
     if (userModalElement && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
       userModalInstance = new bootstrap.Modal(userModalElement);
 
-      // Add event listener for when the modal is fully hidden
       userModalElement.addEventListener('hidden.bs.modal', () => {
-        // Ensure no element within the modal retains focus before moving it
         if (document.activeElement && userModalElement.contains(document.activeElement)) {
           document.activeElement.blur();
         }
-        // Return focus to the button that likely opened the modal after a short delay
-        // This helps with accessibility, ensuring focus is not lost in a hidden element
         setTimeout(() => {
           $('#triggerButton').focus();
-        }, 0); // 0ms delay ensures this runs at the end of the current call stack
+        }, 0);
       });
 
     } else {
@@ -149,7 +145,9 @@
       if ($modalName.val().trim()) {
         hideError($modalName, $modalNameError);
       } else {
-        showError($modalName, $modalNameError, 'Name cannot be empty.');
+        // Keep this local as it applies directly to the input field
+        $modalName.addClass('is-invalid');
+        $modalNameError.text('Name cannot be empty.').show();
       }
     });
   });

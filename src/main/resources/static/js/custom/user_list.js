@@ -1,31 +1,44 @@
 (function() {
+  // Centralized configuration module
+  const Config = {
+    pagination: {
+      pageSize: 10,
+    },
+    apiBaseUrl: '/users', // Base URL for user API endpoints
+    // feedbackDuration is now in UtilsConfig inside utils.js
+    defaultSort: {
+      field: 'createdAt',
+      direction: 'desc'
+    }
+  };
+
   // DOM Elements
   let $loadButton, $tableBody, $startId, $endId;
   let $paginationInfo, $paginationList;
   let $tableHeaders;
 
   // Filter elements
-  let $filterName, $filterCreatedAtStart, $filterCreatedAtEnd, $filterUpdatedAtStart, $filterUpdatedAtEnd;
+  let $filterName, $filterCreatedAtStart, $filterCreatedAtEnd, $filterUpdatedAtStart,
+  $filterUpdatedAtEnd;
 
   // Clear filters button
   let $clearFiltersButton;
 
   let currentPage = 0;
-  const pageSize = 10;
   let totalItems = 0;
   let totalPages = 0;
 
   // Sorting state variables
-  let currentSortField = 'createdAt';
-  let currentSortDirection = 'desc';
+  let currentSortField = Config.defaultSort.field; // Use defaultSort from Config
+  let currentSortDirection = Config.defaultSort.direction; // Use defaultSort from Config
 
   // Updates pagination information text
   const updatePaginationInfo = () => {
     if (totalItems === 0) {
       $paginationInfo.text('No items found.');
     } else {
-      const startItem = currentPage * pageSize + 1;
-      const endItem = Math.min(startItem + pageSize - 1, totalItems);
+      const startItem = currentPage * Config.pagination.pageSize + 1;
+      const endItem = Math.min(startItem + Config.pagination.pageSize - 1, totalItems);
       $paginationInfo.text(`Items ${startItem}-${endItem} of ${totalItems} (Page ${currentPage + 1} of ${totalPages})`);
     }
   };
@@ -79,73 +92,10 @@
     $loadButton.text('Load').prop('disabled', false);
   };
 
-  // Displays a user feedback message using Bootstrap alert
-  const showUserFeedback = (message, type = 'danger') => {
-    const alertId = `alert-${Date.now()}`;
-    const alertHtml = `
-      <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show fixed-top mx-auto mt-3" role="alert" style="max-width: 500px; z-index: 2000;">
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    `;
-    $('body').append(alertHtml);
-
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-      // Use Bootstrap's alert close method if available, otherwise just remove
-      const alertElement = $(`#${alertId}`);
-      if (alertElement.length && alertElement.alert) {
-        alertElement.alert('close');
-      } else {
-        alertElement.remove();
-      }
-    }, 5000);
-  };
-
-  // Displays an error message using the custom UI feedback
+  // Displays an error message using the custom UI feedback from utils.js
   const showError = (message) => {
-    showUserFeedback(message, 'danger');
+    window.showUserFeedback(message, 'danger'); // Use global showUserFeedback
   };
-
-  // Displays a confirmation modal with custom message and callback
-  const showConfirmationModal = (message, callback) => {
-    const modalId = `confirmModal-${Date.now()}`;
-    const modalHtml = `
-      <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content rounded-xl shadow-lg">
-            <div class="modal-header bg-gray-100 border-b border-gray-200">
-              <h5 class="modal-title" id="${modalId}Label">Confirm Action</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-6 text-center">
-              <p class="text-lg text-gray-700">${message}</p>
-            </div>
-            <div class="modal-footer justify-content-center border-t border-gray-200 bg-gray-100 p-4">
-              <button type="button" class="btn btn-secondary rounded-lg px-4 py-2" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary rounded-lg px-4 py-2" id="confirmOkBtn-${modalId}">OK</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    $('body').append(modalHtml);
-    const $confirmModal = $(`#${modalId}`);
-    const confirmModalInstance = new bootstrap.Modal($confirmModal[0]);
-
-    $(`#confirmOkBtn-${modalId}`).on('click', () => {
-      callback();
-      confirmModalInstance.hide();
-    });
-
-    $confirmModal.on('hidden.bs.modal', () => {
-      $confirmModal.remove(); // Clean up modal from DOM after it's hidden
-    });
-
-    confirmModalInstance.show();
-  };
-
 
   // Validates filter input fields
   const validateInput = (startId, endId, createdAtStart, createdAtEnd, updatedAtStart, updatedAtEnd) => {
@@ -302,7 +252,8 @@
     const filterUpdatedAtEnd = $filterUpdatedAtEnd.val();
 
 
-    if (!validateInput(startId, endId, filterCreatedAtStart, filterCreatedAtEnd, filterUpdatedAtStart, filterUpdatedAtEnd)) {
+    if (!validateInput(startId, endId, filterCreatedAtStart, filterCreatedAtEnd, filterUpdatedAtStart,
+      filterUpdatedAtEnd)) {
       stopLoading();
       renderPaginationControls();
       updateSortIndicators();
@@ -310,7 +261,7 @@
       return;
     }
 
-    let url = '/users';
+    let url = Config.apiBaseUrl; // Use Config.apiBaseUrl
     const params = new URLSearchParams();
 
     if (startId !== null) {
@@ -344,7 +295,7 @@
 
 
     params.append('page', currentPage);
-    params.append('size', pageSize);
+    params.append('size', Config.pagination.pageSize); // Use Config.pagination.pageSize
 
     if (params.toString()) {
       url += '?' + params.toString();
@@ -363,7 +314,7 @@
         $tableBody.append(createRowHtml(record.value));
       } else if (record.type === 'pagination_metadata') {
         totalItems = record.value.totalItems;
-        totalPages = Math.ceil(totalItems / pageSize);
+        totalPages = Math.ceil(totalItems / Config.pagination.pageSize); // Use Config.pagination.pageSize
         currentPage = record.value.currentPage;
         renderPaginationControls();
 
@@ -445,9 +396,9 @@
 
   // Function to delete a user
   const deleteUser = async (userId) => {
-    showConfirmationModal('Are you sure you want to delete this user?', async () => {
+    window.showConfirmationModal('Are you sure you want to delete this user?', async () => { // Use global showConfirmationModal
       try {
-        const response = await fetch(`/users/${userId}`, {
+        const response = await fetch(`${Config.apiBaseUrl}/${userId}`, { // Use Config.apiBaseUrl
           method: 'DELETE',
         });
 
@@ -457,7 +408,7 @@
         }
 
         loadUsers(currentPage);
-        showUserFeedback('User deleted successfully', 'success');
+        window.showUserFeedback('User deleted successfully', 'success'); // Use global showUserFeedback
       } catch (error) {
         console.error('Failed to delete user:', error);
         showError('Failed to delete user. Please try again later.');
