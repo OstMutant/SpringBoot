@@ -1,170 +1,276 @@
 /* General styles */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* Using Bootstrap's default system font stack for local fonts */
-  padding: 0; /* Removed general padding from body to make the table span wider */
-  background-color: #f4f7f6; /* Light background for the page */
-  color: #333; /* Darker text for readability */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  padding: 0;
+  background-color: #f4f7f6;
+  color: #333;
 }
 
 h4 {
-  color: #2c3e50; /* Darker, sophisticated blue/grey for titles */
+  color: #2c3e50;
   margin-bottom: 20px;
-  font-weight: 600; /* Slightly bolder for titles */
-  padding-left: 2.5%; /* Added padding to align with table-responsive */
-  padding-top: 20px; /* Added top padding to align with the previous body padding */
+  font-weight: 600;
+  padding-left: 2.5%;
+  padding-top: 20px;
 }
 
-/* Controls section (Add, ID inputs, Load) */
-.d-flex.align-items-center.mb-3.mt-4 {
-  gap: 10px; /* Added gap for spacing between elements */
-  padding: 0 2.5%; /* Match table-responsive horizontal padding */
+/* Container for the Add User button */
+.add-user-button-container {
   max-width: 1200px;
-  margin-left: auto; /* Center the controls along with the table */
-  margin-right: auto;
+  margin: 20px auto 0;
+  padding: 0 20px;
+  text-align: left;
+  display: flex;
+  justify-content: flex-start;
 }
 
-.form-control.w-auto {
-  border-radius: 8px; /* More rounded corners for inputs */
+/* Filter Block Container */
+.filter-block {
+  background-color: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  max-width: 1200px;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 15px 20px;
+  align-items: flex-start; /* Align all groups to the top, as labels are above inputs */
+  justify-content: flex-start;
+}
+
+/* Filter Group - each group holds a label and an input stacked vertically */
+.filter-group {
+  display: flex;
+  flex-direction: column; /* Stack label and input */
+  align-items: flex-start; /* Align contents (label, input) to the start (left) */
+  gap: 4px; /* Small gap between label and input */
+  /* These properties are handled by .filter-block for wrapping and sizing of the groups */
+  /* flex-wrap: wrap; */
+  /* flex-shrink: 0; */
+  /* flex-basis: auto; */
+}
+
+/* Removed .input-control styles as label and input are direct children of .filter-group now */
+/* No .input-control class in user_list.html as per latest review */
+
+/* Specific width adjustments for input fields */
+.filter-group input[type="number"] {
+  width: 90px;
+  max-width: 100%;
+}
+
+.filter-group input[type="text"] {
+  min-width: 160px;
+  max-width: 250px;
+  /* Removed flex-grow as it's not needed for stacking */
+}
+
+.filter-group input[type="date"] {
+  width: 140px;
+  max-width: 100%;
+  /* Removed flex-grow as it's not needed for stacking */
+}
+
+/* New: Container for Load and Clear Filters buttons */
+.filter-buttons-container {
+  max-width: 1200px;
+  margin: 0 auto 20px; /* Center horizontally, 20px margin at bottom */
+  padding: 0 20px; /* Match horizontal padding of filter-block */
+  display: flex;
+  justify-content: flex-end; /* Align buttons to the right */
+  gap: 10px; /* Space between buttons */
+  align-items: center; /* Vertically center buttons if they had different heights */
+}
+
+/* Style for labels within filter groups */
+.filter-group .form-label {
+  margin-bottom: 0; /* Remove default bottom margin for labels */
+  white-space: nowrap;
+  font-weight: 500;
+  color: #555;
+  flex-shrink: 0;
+  /* Removed height, display:flex, align-items:center as labels are now above inputs */
+}
+
+/* Form controls (inputs, selects) */
+.form-control {
+  border-radius: 0.5rem;
   border: 1px solid #ced4da;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,.075); /* Subtle inner shadow */
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.075);
   padding: 8px 12px;
+  background-color: #f8f8f8;
+  color: #333;
+  height: calc(1.5em + .75rem + 2px); /* Standard Bootstrap form-control height for consistency */
+  min-width: 0;
 }
 
+.form-control:focus {
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Buttons */
 .btn {
-  border-radius: 8px; /* Consistent rounded corners for buttons */
+  border-radius: 0.5rem;
   padding: 8px 16px;
   font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  box-shadow: 0 2px 5px rgba(0,123,255,0.2);
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+  box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  box-shadow: 0 2px 5px rgba(108,117,125,0.2);
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+  border-color: #434a50;
+  box-shadow: 0 4px 8px rgba(108,117,125,0.3);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  box-shadow: 0 2px 5px rgba(40,167,69,0.2);
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+  transform: translateY(-1px);
 }
 
 /* Table Container */
 .table-responsive {
-/* Removed fixed height */
-  width: 100%; /* Changed to 100% to fill available horizontal space */
-  max-width: 1200px; /* Limited maximum width on large screens */
-  margin: 20px auto; /* Centering the table container */
-  overflow-y: visible; /* Changed from scroll to visible to remove vertical scrollbar */
-  overflow-x: auto; /* Allow horizontal scrolling if table is wider than container */
-  border: 1px solid #e0e6ed; /* Softer border for the container */
-  border-radius: .5rem; /* More rounded corners */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Subtle shadow for depth */
-  background-color: #fff; /* White background for the table area */
+  width: 100%;
+  max-width: 1200px;
+  margin: 20px auto;
+  overflow-y: visible;
+  overflow-x: auto;
+  border: 1px solid #e0e6ed;
+  border-radius: .5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: #fff;
 }
 
 /* Table */
 .table {
-  width: 100%; /* Table takes full width of its parent container */
-  border-collapse: separate; /* Changed to separate for rounded corners on cells */
-  border-spacing: 0; /* Remove default spacing for separate borders */
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 14px;
-  table-layout: fixed; /* Keep fixed layout for predictable column behavior */
-  margin-bottom: 0; /* Removed bottom margin to avoid duplication with .table-responsive */
-  /* No direct border on table here, borders are on cells */
+  table-layout: fixed;
+  margin-bottom: 0;
 }
 
 .table th,
 .table td {
-  padding: 0; /* Removed padding from td itself to apply it to the inner div */
-  border-bottom: 1px solid #e0e6ed; /* Only horizontal borders for cleaner look */
-  border-right: none; /* No vertical borders */
-  border-left: none; /* No vertical borders */
+  padding: 0;
+  border-bottom: 1px solid #e0e6ed;
+  border-right: none;
+  border-left: none;
   text-align: left;
-  overflow: hidden; /* Hide overflowing content */
-  text-overflow: ellipsis; /* Show ellipsis for overflowing content */
-  white-space: nowrap; /* Prevent text wrapping by default */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Re-apply padding directly to th for header height */
 .table th {
-  padding: 14px 15px; /* Apply padding back to table headers */
+  padding: 14px 15px;
 }
 
-/* New: Styles for the inner content div within each td */
+/* Styles for the inner content div within each td */
 .table td > .td-content {
-  padding: 14px 15px; /* Apply padding here instead of directly on td */
-  height: 100%; /* Ensure inner div takes full height of td */
-  display: flex; /* Use flexbox for vertical centering */
-  align-items: center; /* Vertically center content */
+  padding: 14px 15px;
+  height: 100%;
+  display: flex;
+  align-items: center;
 }
 
 /* Specific content adjustments for Name column within its inner div */
 .table td > .td-name-content {
-  white-space: normal; /* Allow text wrapping for Name column */
-  word-break: break-word; /* Break long words */
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* Specific content adjustments for Actions column within its inner div */
 .table td > .td-actions-content {
-  justify-content: center; /* Center horizontally for buttons */
-  gap: 5px; /* Spacing between buttons */
-  white-space: nowrap; /* Prevent buttons from wrapping */
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 /* Override flex for ID column if it needs specific centering - now applies to .td-content */
 thead th:nth-child(1),
-tbody td:nth-child(1) > .td-content { /* Target the inner div for ID column */
-  width: 80px; /* Increased ID column fixed width to fit sort arrow */
+tbody td:nth-child(1) > .td-content {
+  width: 80px;
   text-align: center;
-  justify-content: center; /* Center horizontally for ID column's content */
+  justify-content: center;
 }
-
 
 /* Remove bottom border from last row cells */
 .table tbody tr:last-child td {
   border-bottom: none;
 }
 
-
 .table thead th {
-  background-color: #f8f9fa; /* Lighter background for headers */
-  border-bottom: 2px solid #d4dce7; /* Slightly darker bottom border for headers */
-  font-weight: 600; /* Bolder font for headers */
-  color: #495057; /* Darker text for headers */
-  position: sticky; /* Keep headers visible on scroll */
-  top: 0; /* Pin to top */
-  z-index: 1; /* Ensure headers are above content */
-  text-transform: uppercase; /* Uppercase header text */
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #d4dce7;
+  font-weight: 600;
+  color: #495057;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-size: 0.85em; /* Slightly smaller font size for headers */
-  cursor: pointer; /* Indicate sortable columns */
-  user-select: none; /* Prevent text selection on click */
-  transition: background-color 0.2s ease-in-out; /* Smooth transition for hover/active */
-  white-space: nowrap; /* Prevent wrapping of header text */
+  font-size: 0.85em;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease-in-out;
+  white-space: nowrap;
 }
 
 .table thead th:hover {
-  background-color: #dee2e6; /* Slightly darker on hover */
+  background-color: #dee2e6;
 }
 
-/* Active sort column highlighting - Removed specific background/color, only relevant for header if it needs other styling */
+/* Active sort column highlighting */
 .table thead th.active-sort-column {
-/* No visual changes to the header background/text color from this class */
-/* If you need any specific styling for the active header itself (e.g., thicker border), add it here */
 }
 
-/* Styling for the sort icon container (span) */
+/* Styling for the sort icon */
 .table thead th .sort-icon {
-  display: inline-flex; /* To align icon with text */
-  vertical-align: middle; /* Align with text baseline */
-  height: 1.2em; /* Increased icon size */
-  width: 1.2em; /* Increased icon size */
-  /* Removed filter transitions as color is now inherent to the icon SVG fill */
+  display: inline-flex;
+  vertical-align: middle;
+  height: 1.2em;
+  width: 1.2em;
+  color: #6c757d;
+  transition: color 0.2s ease-in-out;
 }
 
-/* Styling for the img element inside the sort icon span - Removed filter properties */
-.table thead th .sort-icon img {
-  height: 100%; /* Ensure img fills its container */
-  width: 100%; /* Ensure img fills its container */
-  /* Removed filter styles, icons will use their inherent fill color */
-  /* transition: none; - No transition needed for color change as it's now icon-based */
+/* Highlight the sort icon when its column is active */
+.table thead th .sort-icon {
+  color: #007bff;
 }
-
-/* Style for muted unsorted icon */
-.table thead th .sort-icon img.sort-icon-muted {
-  opacity: 0.5; /* Make the unsorted icon slightly transparent */
-  transition: opacity 0.2s ease-in-out; /* Smooth transition for opacity */
-}
-/* No separate active icon styling needed as the icon itself changes for active state */
-
 
 /* Specific styling for the first and last header/cell for rounded corners */
 .table thead th:first-child {
@@ -175,93 +281,87 @@ tbody td:nth-child(1) > .td-content { /* Target the inner div for ID column */
   border-top-right-radius: .5rem;
 }
 
-
 .table tbody tr:nth-child(even) {
-  background-color: #fdfdfd; /* Even rows are almost white for subtle striping */
+  background-color: #fdfdfd;
 }
 
 .table tbody tr:hover {
-  background-color: #eef7f8; /* Soft blue background on hover */
+  background-color: #eef7f8;
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px #bce8f1; /* Subtle border on hover */
+  box-shadow: inset 0 0 0 1px #bce8f1;
 }
 
 /* Column widths (using fixed pixels for control, 'Name' takes auto) */
-/* thead th:nth-child(1), tbody td:nth-child(1) - moved above to include flex properties for td */
-
 thead th:nth-child(3),
 tbody td:nth-child(3) {
-  width: 185px; /* Created At column fixed width, increased to fit date/time better */
+  width: 185px;
   white-space: nowrap;
 }
 
 thead th:nth-child(4),
 tbody td:nth-child(4) {
-  width: 185px; /* Updated At column fixed width, increased to fit date/time better */
+  width: 185px;
   white-space: nowrap;
 }
 
-thead th:last-child { /* Specific style for the Actions header (th) */
-  width: 90px; /* Actions header column fixed width, increased slightly for the text "ACTIONS" */
-  text-align: center; /* Center the "ACTIONS" text */
-  white-space: nowrap; /* Prevent text wrapping */
+thead th:last-child {
+  width: 90px;
+  text-align: center;
+  white-space: nowrap;
 }
 
-tbody td:last-child { /* Specific style for the Actions data cells (td) */
-  width: 90px; /* Actions column fixed width, matching header */
-  /* These styles are now applied to the inner div: td > .td-actions-content */
+tbody td:last-child {
+  width: 90px;
 }
 
 thead th:nth-child(2),
 tbody td:nth-child(2) {
-  width: auto; /* Name column takes up remaining available space */
-  white-space: normal; /* Allow text wrapping */
-  word-break: break-word; /* Break long words */
+  width: auto;
+  white-space: normal;
+  word-break: break-word;
 }
-
 
 /* Styles for edit/delete buttons */
 .edit-button,
 .delete-button {
-  padding: 4px; /* Reduced padding for a very compact button (16px icon + 2*4px padding = 24px) */
+  padding: 4px;
   border: none;
-  border-radius: 5px; /* Consistent with other buttons */
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Added transform for hover effect */
-  min-width: 24px; /* Set specific minimum width for icon buttons */
-  height: 24px; /* Ensure height matches min-width for square buttons */
-  display: flex; /* Use flexbox to center SVG within the button */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  min-width: 24px;
+  height: 24px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Subtle shadow, slightly reduced for smaller buttons */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .edit-button {
-  background-color: #4a90e2; /* A slightly softer blue */
+  background-color: #4a90e2;
   color: white;
 }
 
 .edit-button:hover {
-  background-color: #357bd8; /* Darker on hover */
-  transform: translateY(-1px); /* Slight lift effect */
+  background-color: #357bd8;
+  transform: translateY(-1px);
 }
 
 .delete-button {
-  background-color: #e74c3c; /* A softer red */
+  background-color: #e74c3c;
   color: white;
 }
 
 .delete-button:hover {
-  background-color: #c0392b; /* Darker on hover */
-  transform: translateY(-1px); /* Slight lift effect */
+  background-color: #c0392b;
+  transform: translateY(-1px);
 }
 
 /* Optimize SVG icon color: make them light grey instead of pure white */
 .edit-button img,
 .delete-button img {
-  filter: brightness(0) invert(1) brightness(0.85); /* Converts to white, then darkens to light grey (e.g., #D8D8D8) */
+  filter: brightness(0) invert(1) brightness(0.85);
 }
-
 
 /* Pagination (simplified for context focus) */
 .pagination-info-text {
@@ -277,8 +377,8 @@ tbody td:nth-child(2) {
 
 .page-item .page-link {
   color: #007bff;
-  border-radius: 8px; /* Rounded page links */
-  margin: 0 3px; /* Small gap between page links */
+  border-radius: 8px;
+  margin: 0 3px;
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
@@ -286,17 +386,17 @@ tbody td:nth-child(2) {
   background-color: #007bff;
   border-color: #007bff;
   color: white;
-  box-shadow: 0 2px 5px rgba(0,123,255,0.2); /* Subtle shadow for active page */
+  box-shadow: 0 2px 5px rgba(0,123,255,0.2);
 }
 
 .page-item.disabled .page-link {
-  color: #adb5bd; /* Softer disabled color */
-  pointer-events: none; /* Disable click events */
-  background-color: #e9ecef; /* Light background for disabled */
+  color: #adb5bd;
+  pointer-events: none;
+  background-color: #e9ecef;
   border-color: #e9ecef;
 }
 
 .page-item .page-link:hover:not(.disabled) {
-  background-color: #e6f2ff; /* Light blue background on hover for links */
+  background-color: #e6f2ff;
   border-color: #007bff;
 }
