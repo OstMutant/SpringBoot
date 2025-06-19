@@ -176,6 +176,19 @@
     removeLoadingRow() {
       $('#loading-row').remove();
     }
+
+    /**
+     * Sets the loading state of the table.
+     * @param {boolean} isLoading - True to show loading, false to hide.
+     */
+    setLoadingState(isLoading) {
+      if (isLoading) {
+        this.clearTableBody();
+        this.showLoadingRow();
+      } else {
+        this.removeLoadingRow();
+      }
+    }
   }
 
 
@@ -189,6 +202,7 @@
       this.$paginationInfo = $('#paginationInfo');
       this.$paginationList = $('#paginationList');
       this.$tableHeaders = $('th[data-sort-field]');
+      this.$tableHead = $('thead'); // Reference to thead for delegation
 
       // Initialize new filter elements
       this.$filterName = $('#filterName');
@@ -237,9 +251,11 @@
       window.EventBus.on('user:added', this.handleUserUpdateEvent.bind(this));
       window.EventBus.on('user:updated', this.handleUserUpdateEvent.bind(this));
 
-      $(document).on('click', '.edit-button', this.handleEditButtonClick.bind(this));
-      $(document).on('click', '.delete-button', this.handleDeleteButtonClick.bind(this));
-      $('thead').on('click', 'th[data-sort-field]', this.handleSortHeaderClick.bind(this));
+      // Consolidate jQuery event handlers to relevant parent elements
+      this.$tableBody.on('click', '.edit-button', this.handleEditButtonClick.bind(this));
+      this.$tableBody.on('click', '.delete-button', this.handleDeleteButtonClick.bind(this));
+      this.$tableHead.on('click', 'th[data-sort-field]', this.handleSortHeaderClick.bind(this));
+
 
       // Add change event listeners for interactive date validation
       this.$filterCreatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtStart, this.$filterCreatedAtEnd, 'max', 'min'));
@@ -280,8 +296,7 @@
       this.currentPage = page;
       this.startLoading();
 
-      this.renderer.clearTableBody();
-      this.renderer.showLoadingRow();
+      this.renderer.setLoadingState(true); // Optimized: use setLoadingState
 
       const filterValues = this.filterService.getFilterValues();
 
@@ -289,7 +304,7 @@
         this.stopLoading();
         this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
-        this.renderer.removeLoadingRow();
+        this.renderer.setLoadingState(false); // Optimized: use setLoadingState
         return;
       }
 
@@ -319,7 +334,7 @@
       })
         .node('!', (record) => {
         if (record.type === 'data') {
-          this.renderer.removeLoadingRow();
+          this.renderer.removeLoadingRow(); // Still need to remove initial loading row before appending data
           this.renderer.appendRow(this.renderer.createRowHtml(record.value));
         } else if (record.type === 'pagination_metadata') {
           this.totalItems = record.value.totalItems;
@@ -337,21 +352,43 @@
         this.stopLoading();
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         console.log('Oboe stream completed.');
-        this.renderer.removeLoadingRow();
+        this.renderer.setLoadingState(false); // Optimized: use setLoadingState
         if (this.totalItems === 0) {
           this.renderer.clearTableBody(); // Clear if no items found after load
         }
       })
         .fail((error) => {
         console.error('Stream failed:', error);
-        this.showError('Failed to load users. Please try again later.');
+        let errorMessage = 'Failed to load users. Please try again later.';
+
+        // Check if it's an HTTP error with a status code
+        if (error && typeof error.statusCode === 'number') {
+          if (error.statusCode >= 400 && error.statusCode < 500) {
+            errorMessage = `Failed to load users. Client error (Status: ${error.statusCode}).`;
+            if (error.json && error.json.message) {
+              errorMessage += ` Details: ${error.json.message}`;
+            } else if (error.thrown) {
+              // If it's a thrown error (e.g., from network issues), this might be relevant
+              errorMessage += ` Details: ${error.thrown.message || error.thrown}`;
+            }
+          } else if (error.statusCode >= 500 && error.statusCode < 600) {
+            errorMessage = `Failed to load users. Server error (Status: ${error.statusCode}).`;
+          } else {
+            errorMessage = `Failed to load users. Unexpected status: ${error.statusCode}.`;
+          }
+        } else {
+          // Assume network error or other client-side issue if no status code
+          errorMessage = 'Failed to load users. Please check your internet connection or the server status.';
+        }
+
+        this.showError(errorMessage);
         this.stopLoading();
         this.totalItems = 0;
         this.totalPages = 0;
         this.currentPage = 0;
         this.renderer.renderPaginationControls(this.currentPage, this.totalPages);
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
-        this.renderer.removeLoadingRow();
+        this.renderer.setLoadingState(false); // Optimized: use setLoadingState
         this.renderer.clearTableBody();
       });
     }
@@ -393,6 +430,7 @@
 
     // Handles click on edit button
     handleEditButtonClick(event) {
+      // Use event.currentTarget for delegated events
       const userId = $(event.currentTarget).data('id');
       if (typeof window.openModalForEdit === 'function') {
         window.openModalForEdit(userId);
@@ -403,6 +441,7 @@
 
     // Handles click on delete button
     async handleDeleteButtonClick(event) {
+      // Use event.currentTarget for delegated events
       const userId = $(event.currentTarget).data('id');
       window.showConfirmationModal('Are you sure you want to delete this user?', async () => {
         try {
@@ -419,6 +458,7 @@
 
     // Handles click on sortable table headers
     handleSortHeaderClick(event) {
+      // Use event.currentTarget for delegated events
       const $header = $(event.currentTarget);
       const field = $header.data('sort-field');
 

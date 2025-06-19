@@ -28,6 +28,20 @@
           }, 0);
         });
 
+        // Add event listener for when the modal is shown, ensuring focus is explicitly on the modal container
+        userModalElement.addEventListener('shown.bs.modal', () => {
+          userModalElement.focus();
+        });
+
+
+        // Add event listener for focus management inside the modal
+        userModalElement.addEventListener('focusin', (event) => {
+          // If focus moves to an element outside the modal, return focus to the modal itself
+          if (!userModalElement.contains(event.target)) {
+            userModalElement.focus();
+          }
+        });
+
       } else {
         console.warn("Bootstrap Modal not found or element not ready. Falling back to jQuery .modal().");
       }
@@ -35,6 +49,14 @@
       // Attach event listeners
       this.$saveButton.on('click', this.saveUser.bind(this)); // Bind 'this' to the class instance
       this.$modalName.on('input', this.handleNameInput.bind(this)); // Bind 'this'
+
+      // Add a delegated event listener to blur the active element when any data-bs-dismiss button is clicked
+      // inside this specific modal. This helps prevent focus retention issues.
+      $(userModalElement).on('click', '[data-bs-dismiss="modal"]', (event) => {
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+      });
     }
 
     // Opens the modal for adding a new user
@@ -91,7 +113,6 @@
       }
 
       // No need to call hideError here as InputValidator.validateName handles it if valid
-      // this.hideError(this.$modalName, this.$modalNameError);
 
       const user = {
         name: userName
@@ -100,6 +121,11 @@
       try {
         // Use the global Api service to save user data
         const responseData = await window.Api.saveUser(user, this.userIdToEdit);
+
+        // Explicitly blur the save button before hiding the modal to prevent focus retention issues.
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
 
         if (this.userModalInstance) {
           this.userModalInstance.hide();
@@ -127,6 +153,9 @@
     const userModal = new UserModal();
 
     // Attach event listeners for external triggers
+    // These listeners use `$(document).on()` because the triggerButton and edit-buttons
+    // exist on the page initially or are dynamically added/removed in other parts of the app,
+    // and this ensures they are always caught.
     $(document).on('click', '.edit-button', function() {
       const userId = $(this).data('id');
       userModal.openModalForEdit(userId);

@@ -46,7 +46,7 @@
   const showConfirmationModal = (message, callback) => {
     const modalId = `confirmModal-${Date.now()}`;
     const modalHtml = `
-      <div class="modal fade" id="${modalId}" tabindex="-1" aria-labelledby="${modalId}Label" aria-hidden="true">
+      <div class="modal fade" id="${modalId}" tabindex="-1" role="dialog" aria-labelledby="${modalId}Label" aria-modal="true">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content rounded-xl shadow-lg">
             <div class="modal-header bg-gray-100 border-b border-gray-200">
@@ -67,14 +67,45 @@
 
     $('body').append(modalHtml);
     const $confirmModal = $(`#${modalId}`);
-    const confirmModalInstance = new bootstrap.Modal($confirmModal[0]);
+    const confirmModalElement = $confirmModal[0];
+    const confirmModalInstance = new bootstrap.Modal(confirmModalElement);
 
+    // When the modal is shown, ensure focus is explicitly on the modal container
+    $confirmModal.on('shown.bs.modal', () => {
+      confirmModalElement.focus();
+    });
+
+    // Handle click on the OK button
     $(`#confirmOkBtn-${modalId}`).on('click', () => {
       callback();
+      // Explicitly blur the active element (the clicked OK button) before hiding the modal
+      if (document.activeElement) {
+        document.activeElement.blur();
+      }
       confirmModalInstance.hide();
     });
 
-    // Corrected: Dispose the Bootstrap modal instance before removing the DOM element
+    // Handle click on any data-bs-dismiss="modal" button within this specific modal (e.g., Close, Cancel)
+    $confirmModal.find('[data-bs-dismiss="modal"]').on('click', (event) => {
+      // Ensure the event originated from a button inside THIS specific modal
+      if ($(event.currentTarget).closest(`#${modalId}`).length) {
+        // Explicitly blur the active element (the clicked button)
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+        // Bootstrap's data-bs-dismiss="modal" will handle the hide() call
+      }
+    });
+
+    // Add event listener for focus management inside the modal
+    confirmModalElement.addEventListener('focusin', (event) => {
+      // If focus moves to an element outside the modal, return focus to the modal itself
+      if (!confirmModalElement.contains(event.target)) {
+        confirmModalElement.focus();
+      }
+    });
+
+    // Dispose the Bootstrap modal instance before removing the DOM element when fully hidden
     $confirmModal.on('hidden.bs.modal', () => {
       confirmModalInstance.dispose(); // Dispose Bootstrap instance
       $confirmModal.remove(); // Clean up modal from DOM after it's hidden
