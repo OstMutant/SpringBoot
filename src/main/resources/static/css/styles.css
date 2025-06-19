@@ -38,11 +38,11 @@ h4 {
 
 /* Table Container */
 .table-responsive {
-  height: 400px; /* Fixed height for vertical scrolling */
+/* Removed fixed height */
   width: 100%; /* Changed to 100% to fill available horizontal space */
   max-width: 1200px; /* Limited maximum width on large screens */
   margin: 20px auto; /* Centering the table container */
-  overflow-y: auto; /* Vertical scrolling */
+  overflow-y: visible; /* Changed from scroll to visible to remove vertical scrollbar */
   overflow-x: auto; /* Allow horizontal scrolling if table is wider than container */
   border: 1px solid #e0e6ed; /* Softer border for the container */
   border-radius: .5rem; /* More rounded corners */
@@ -102,7 +102,7 @@ h4 {
 /* Override flex for ID column if it needs specific centering - now applies to .td-content */
 thead th:nth-child(1),
 tbody td:nth-child(1) > .td-content { /* Target the inner div for ID column */
-  width: 50px; /* ID column fixed width */
+  width: 80px; /* Increased ID column fixed width to fit sort arrow */
   text-align: center;
   justify-content: center; /* Center horizontally for ID column's content */
 }
@@ -125,7 +125,46 @@ tbody td:nth-child(1) > .td-content { /* Target the inner div for ID column */
   text-transform: uppercase; /* Uppercase header text */
   letter-spacing: 0.5px;
   font-size: 0.85em; /* Slightly smaller font size for headers */
+  cursor: pointer; /* Indicate sortable columns */
+  user-select: none; /* Prevent text selection on click */
+  transition: background-color 0.2s ease-in-out; /* Smooth transition for hover/active */
+  white-space: nowrap; /* Prevent wrapping of header text */
 }
+
+.table thead th:hover {
+  background-color: #dee2e6; /* Slightly darker on hover */
+}
+
+/* Active sort column highlighting - Removed specific background/color, only relevant for header if it needs other styling */
+.table thead th.active-sort-column {
+/* No visual changes to the header background/text color from this class */
+/* If you need any specific styling for the active header itself (e.g., thicker border), add it here */
+}
+
+/* Styling for the sort icon container (span) */
+.table thead th .sort-icon {
+  display: inline-flex; /* To align icon with text */
+  vertical-align: middle; /* Align with text baseline */
+  height: 1.2em; /* Increased icon size */
+  width: 1.2em; /* Increased icon size */
+  /* Removed filter transitions as color is now inherent to the icon SVG fill */
+}
+
+/* Styling for the img element inside the sort icon span - Removed filter properties */
+.table thead th .sort-icon img {
+  height: 100%; /* Ensure img fills its container */
+  width: 100%; /* Ensure img fills its container */
+  /* Removed filter styles, icons will use their inherent fill color */
+  /* transition: none; - No transition needed for color change as it's now icon-based */
+}
+
+/* Style for muted unsorted icon */
+.table thead th .sort-icon img.sort-icon-muted {
+  opacity: 0.5; /* Make the unsorted icon slightly transparent */
+  transition: opacity 0.2s ease-in-out; /* Smooth transition for opacity */
+}
+/* No separate active icon styling needed as the icon itself changes for active state */
+
 
 /* Specific styling for the first and last header/cell for rounded corners */
 .table thead th:first-child {

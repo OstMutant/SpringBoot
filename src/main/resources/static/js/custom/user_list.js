@@ -2,11 +2,19 @@
 // DOM Elements
 let $loadButton, $tableBody, $startId, $endId;
 let $paginationInfo, $paginationList;
+let $tableHeaders; // Reference to table headers
 
 let currentPage = 0;
 const pageSize = 10;
 let totalItems = 0;
 let totalPages = 0;
+
+// Sorting state variables
+// Default sort: 'createdAt' descending, as per user request
+let currentSortField = 'createdAt';
+let currentSortDirection = 'desc';
+
+// REMOVED: SVG paths for sort icons (now using direct paths to external files)
 
 function updatePaginationInfo() {
   if (totalItems === 0) {
@@ -59,7 +67,6 @@ function renderPaginationControls() {
 // Functions
 function startLoading() {
   $loadButton.text('Loading...').prop('disabled', true);
-  $tableBody.empty(); // Clear existing table data before loading
 }
 
 function stopLoading() {
@@ -98,10 +105,13 @@ function createRowHtml(value) {
   const createdAt = value.createdAt ? new Date(value.createdAt).toLocaleString() : 'N/A';
   const updatedAt = value.updatedAt ? new Date(value.updatedAt).toLocaleString() : 'N/A';
 
+  // Safely escape user.name to prevent XSS
+  const sanitizedName = $('<div>').text(value.name).html();
+
   return `
     <tr id="user-row-${value.id}">
       <td><div class="td-content">${value.id}</div></td>
-      <td><div class="td-content td-name-content">${value.name}</div></td>
+      <td><div class="td-content td-name-content">${sanitizedName}</div></td>
       <td><div class="td-content">${createdAt}</div></td>
       <td><div class="td-content">${updatedAt}</div></td>
       <td>
@@ -118,10 +128,65 @@ function createRowHtml(value) {
   `;
 }
 
+/**
+ * Updates the visual sort indicators in the table headers.
+ * Uses different SVG icons for ascending, descending, and unsorted states.
+ */
+function updateSortIndicators() {
+  $tableHeaders.each(function() {
+    const $header = $(this);
+    const sortField = $header.data('sort-field');
+    let $sortIconContainer = $header.find('.sort-icon'); // The span that holds the img
+
+    // Ensure the span.sort-icon exists
+    if ($sortIconContainer.length === 0) {
+      $header.append('<span class="sort-icon"></span>');
+      $sortIconContainer = $header.find('.sort-icon');
+    }
+
+    // Clear previous img and its classes
+    $sortIconContainer.empty();
+
+    let iconPath;
+    let iconAlt;
+    let imgClass = ''; // Class for muted state for unsorted icon
+
+    if (sortField === currentSortField) {
+      // No active-sort-column class on header as per user request
+      if (currentSortDirection === 'asc') {
+        iconPath = '/icons/sort-asc.svg'; // Path to the new ascending icon
+        iconAlt = 'Ascending sort icon';
+      } else {
+        iconPath = '/icons/sort-desc.svg'; // Path to the new descending icon
+        iconAlt = 'Descending sort icon';
+      }
+    } else {
+      // Remove any active styling from headers not currently sorted
+      $header.removeClass('active-sort-column'); // Ensure header itself is not highlighted
+      iconPath = '/icons/sort-none.svg'; // Path to the unsorted icon
+      iconAlt = 'Unsorted icon';
+      imgClass = 'sort-icon-muted'; // Apply a class to mute the unsorted icon if desired
+    }
+
+    // Append the img tag with the correct path and class
+    $sortIconContainer.html(`<img src="${iconPath}" alt="${iconAlt}" width="16" height="16" class="${imgClass}">`);
+  });
+}
+
+
 // loadUsers function using oboe targeting GET /users
 function loadUsers(page = 0) {
   currentPage = page;
-  startLoading(); // Includes clearing the table
+  startLoading(); // Only changes button state, does not clear table initially
+
+  // Clear table immediately and show loading row to prevent twitching
+  $tableBody.empty();
+  $tableBody.append(`
+      <tr id="loading-row">
+          <td colspan="5" class="text-center py-4 text-muted">Loading users...</td>
+      </tr>
+  `);
+
 
   const startId = $startId.val() ? parseInt($startId.val()) : null;
   const endId = $endId.val() ? parseInt($endId.val()) : null;
@@ -129,6 +194,8 @@ function loadUsers(page = 0) {
   if (!validateInput(startId, endId)) {
     stopLoading();
     renderPaginationControls();
+    updateSortIndicators(); // Ensure indicators are updated even if validation fails
+    $('#loading-row').remove(); // Remove loading indicator on validation fail
     return;
   }
 
@@ -143,13 +210,16 @@ function loadUsers(page = 0) {
     params.append('endId', endId);
   }
 
-  // Add sort parameter for updatedAt in descending order
-  params.append('sort', 'updatedAt,desc');
+  // Add sort parameter based on current sort state
+  if (currentSortField) {
+    params.append('sort', `${currentSortField},${currentSortDirection}`);
+  }
+
 
   params.append('page', currentPage); // Send the requested 0-indexed page number
   params.append('size', pageSize);
 
-  // Append parameters to the URL if they exist
+  // Append parameters to the URL if they exists
   if (params.toString()) {
     url += '?' + params.toString();
   }
@@ -160,9 +230,11 @@ function loadUsers(page = 0) {
   })
     .start(() => {
     console.log('Oboe stream started for /users');
+    // Table is already cleared and loading row added
   })
     .node('!', (record) => {
     if (record.type === 'data') {
+      $('#loading-row').remove(); // Remove loading row as soon as first data record arrives
       $tableBody.append(createRowHtml(record.value));
     } else if (record.type === 'pagination_metadata') {
       totalItems = record.value.totalItems;
@@ -178,7 +250,16 @@ function loadUsers(page = 0) {
   })
     .done(() => {
     stopLoading();
+    updateSortIndicators(); // Update sort icons and active column after data is loaded
     console.log('Oboe stream completed.');
+    // If no data records were ever received, ensure loading row is removed
+    if ($('#loading-row').length) { // Check if loading row still exists
+      $('#loading-row').remove();
+    }
+    // If table is still empty (e.g., no results), ensure pagination info is correct
+    if (totalItems === 0) {
+      $tableBody.empty(); // Ensure it's truly empty if no items were found
+    }
   })
     .fail((error) => {
     console.error('Stream failed:', error);
@@ -188,6 +269,9 @@ function loadUsers(page = 0) {
     totalPages = 0;
     currentPage = 0;
     renderPaginationControls();
+    updateSortIndicators(); // Also update indicators on failure
+    $('#loading-row').remove(); // Remove loading indicator on failure
+    $tableBody.empty(); // Ensure table is empty on failure
   });
 }
 
@@ -201,7 +285,7 @@ function goToPage(page) {
 
 // Function to delete a user
 function deleteUser(userId) {
-  if (confirm('Arerocities sure you want to delete this user?')) {
+  if (confirm('Are you sure you want to delete this user?')) {
     $.ajax({
       url: `/users/${userId}`,
       method: 'DELETE',
@@ -227,10 +311,12 @@ $(document).ready(() => {
   $endId = $('#endId');
   $paginationInfo = $('#paginationInfo');
   $paginationList = $('#paginationList');
+  $tableHeaders = $('th[data-sort-field]'); // Select sortable headers
 
-  // Load users on initial page load
+  // Initial load users with default sorting
   loadUsers(0);
 
+  // Pagination click handler
   $paginationList.on('click', '.page-link', function(event) {
     event.preventDefault();
 
@@ -243,26 +329,15 @@ $(document).ready(() => {
     }
   });
 
-  // Event Handlers
+  // Event Handlers for buttons (Load, Add, Edit, Delete)
   $loadButton.on('click', () => {
-    loadUsers(0);
+    loadUsers(0); // Reload from first page on Load button click
   });
 
-  // Listener for custom event
-  $(document).on('userAdded', function(event, newUser) {
-    loadUsers(currentPage);
-    console.log('New user added (jQuery event), reloading users:', newUser);
-  });
-
-  $(document).on('userUpdated', function(event, updatedUser) {
-    console.log('User updated (jQuery event), checking if row needs update:', updatedUser);
-    const $rowToUpdate = $(`#user-row-${updatedUser.id}`);
-    if ($rowToUpdate.length) {
-      $rowToUpdate.replaceWith(createRowHtml(updatedUser));
-      console.log('User row updated on current page:', updatedUser.id);
-    } else {
-      console.log('User updated, but row not found on current page.');
-    }
+  // Listener for custom event (userAdded, userUpdated)
+  $(document).on('userAdded userUpdated', function(event, data) {
+    console.log(`Event ${event.type} triggered with data:`, data);
+    loadUsers(currentPage); // Reload the current page to ensure sorted order is maintained
   });
 
   // Delegate click event for dynamically added edit buttons
@@ -281,4 +356,24 @@ $(document).ready(() => {
     const userId = $(this).data('id');
     deleteUser(userId);
   });
+
+  // Click handler for table headers to enable sorting
+  $('thead').on('click', 'th[data-sort-field]', function() {
+    const $header = $(this);
+    const field = $header.data('sort-field');
+
+    if (field === currentSortField) {
+      // If clicking the same column, toggle direction
+      currentSortDirection = (currentSortDirection === 'asc') ? 'desc' : 'asc';
+    } else {
+      // If clicking a new column, set it as current and default to 'asc'
+      currentSortField = field;
+      currentSortDirection = 'asc'; // You can change this to 'desc' if preferred for new columns
+    }
+
+    loadUsers(0); // Reload data with new sorting, starting from the first page
+  });
+
+  // Initial update of sort indicators
+  updateSortIndicators();
 });
