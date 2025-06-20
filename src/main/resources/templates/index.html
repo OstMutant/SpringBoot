@@ -13,9 +13,9 @@
   <script data-th-src="@{/js/oboe-browser.min.js}"></script>
 
   <!-- Include utils.js BEFORE modal.js and user_list.js -->
-  <script data-th-src="@{/js/custom/utils.js}"></script>
-  <script data-th-src="@{/js/custom/modal.js}"></script>
-  <script data-th-src="@{/js/custom/user_list.js}"></script>
+  <script data-th-src="@{/js/custom/users/utils.js}"></script>
+  <script data-th-src="@{/js/custom/users/modal.js}"></script>
+  <script data-th-src="@{/js/custom/users/user_list.js}"></script>
 
   <title>Spring Boot Application</title>
 </head>
@@ -37,12 +37,10 @@
 <!-- Tab content -->
 <div class="tab-content" id="myTabContent">
   <div class="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="main-tab">
-    <!-- Main tab content is now included as a separate fragment -->
     <div data-th-insert="~{fragments/main_tab_content :: mainTabContent}"></div>
   </div>
   <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-    <!-- Settings content will go here -->
-    <p class="p-4 text-muted">This is the settings page. Content will be added here later.</p>
+    <div data-th-insert="~{fragments/settings_tab_content :: settingsTabContent}"></div>
   </div>
 </div>
 
