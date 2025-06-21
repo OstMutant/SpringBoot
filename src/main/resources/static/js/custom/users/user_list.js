@@ -195,7 +195,6 @@
 
   class UserListTable {
     constructor() {
-      // Initialize DOM elements
       this.$loadButton = $('#loadButton');
       this.$tableBody = $('tbody');
       this.$startId = $('#startId');
@@ -203,9 +202,8 @@
       this.$paginationInfo = $('#paginationInfo');
       this.$paginationList = $('#paginationList');
       this.$tableHeaders = $('th[data-sort-field]');
-      this.$tableHead = $('thead'); // Reference to thead for delegation
+      this.$tableHead = $('thead');
 
-      // Initialize new filter elements
       this.$filterName = $('#filterName');
       this.$filterCreatedAtStart = $('#filterCreatedAtStart');
       this.$filterCreatedAtEnd = $('#filterCreatedAtEnd');
@@ -213,23 +211,20 @@
       this.$filterUpdatedAtEnd = $('#filterUpdatedAtEnd');
       this.$clearFiltersButton = $('#clearFiltersButton');
 
-      // State variables
       this.currentPage = 0;
       this.totalItems = 0;
       this.totalPages = 0;
-      this.currentSortField = window.GlobalConfig.defaultSort.field; // Use GlobalConfig
-      this.currentSortDirection = window.GlobalConfig.defaultSort.direction; // Use GlobalConfig
+      this.currentSortField = window.GlobalConfig.defaultSort.field;
+      this.currentSortDirection = window.GlobalConfig.defaultSort.direction;
 
-      // Initialize UserTableRenderer
       this.renderer = new UserTableRenderer(
         this.$tableBody,
         this.$paginationInfo,
         this.$paginationList,
         this.$tableHeaders,
-        window.GlobalConfig.pagination.pageSize // Use GlobalConfig
+        window.GlobalConfig.pagination.pageSize
       );
 
-      // Initialize FilterService
       this.filterService = new window.FilterService(
         this.$startId,
         this.$endId,
@@ -240,25 +235,22 @@
         this.$filterUpdatedAtEnd
       );
 
-      // Initial load users with default sorting
-      this.loadUsers(0);
+      // Removed automatic table loading on script initialization
+      // this.loadUsers(0);
 
-      // Attach event listeners
       this.$loadButton.on('click', this.loadUsers.bind(this, 0));
       this.$clearFiltersButton.on('click', this.clearFilters.bind(this));
       this.$paginationList.on('click', '.page-link', this.handlePaginationClick.bind(this));
 
-      // Listen to custom events via EventBus
       window.EventBus.on('user:added', this.handleUserUpdateEvent.bind(this));
       window.EventBus.on('user:updated', this.handleUserUpdateEvent.bind(this));
 
-      // Consolidate jQuery event handlers to relevant parent elements
+
       this.$tableBody.on('click', '.edit-button', this.handleEditButtonClick.bind(this));
       this.$tableBody.on('click', '.delete-button', this.handleDeleteButtonClick.bind(this));
       this.$tableHead.on('click', 'th[data-sort-field]', this.handleSortHeaderClick.bind(this));
 
 
-      // Add change event listeners for interactive date validation
       this.$filterCreatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtStart, this.$filterCreatedAtEnd, 'max', 'min'));
       this.$filterCreatedAtEnd.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtEnd, this.$filterCreatedAtStart, 'min', 'max'));
       this.$filterUpdatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterUpdatedAtStart, this.$filterUpdatedAtEnd, 'max', 'min'));
@@ -267,7 +259,6 @@
       this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
     }
 
-    // Handles changes in date filter inputs to set min/max attributes
     handleDateFilterChange($changedInput, $targetInput, changedAttr, targetAttr) {
       const value = $changedInput.val();
       if (value) {
@@ -277,42 +268,37 @@
       }
     }
 
-    // Sets loading state for the load button
     startLoading() {
       this.$loadButton.text('Loading...').prop('disabled', true);
     }
 
-    // Resets load button state
     stopLoading() {
       this.$loadButton.text('Load').prop('disabled', false);
     }
 
-    // Displays an error message using the custom UI feedback from utils.js
     showError(message) {
       window.showUserFeedback(message, 'danger');
     }
 
-    // Loads users from the server using Oboe.js
     loadUsers(page = 0) {
       this.currentPage = page;
       this.startLoading();
 
-      this.renderer.setLoadingState(true); // Optimized: use setLoadingState
+      this.renderer.setLoadingState(true);
 
       const filterValues = this.filterService.getFilterValues();
 
       if (!window.InputValidator.validateUserFilters(filterValues, this.showError)) {
         this.stopLoading();
-        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages); // Pass totalItems
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
-        this.renderer.setLoadingState(false); // Optimized: use setLoadingState
+        this.renderer.setLoadingState(false);
         return;
       }
 
-      // Prepare query parameters for the API call
       const queryParams = {
         page: this.currentPage,
-        size: window.GlobalConfig.pagination.pageSize, // Use GlobalConfig
+        size: window.GlobalConfig.pagination.pageSize,
         sort: `${this.currentSortField},${this.currentSortDirection}`
       };
 
@@ -324,7 +310,7 @@
       if (filterValues.updatedAtStart) queryParams.updatedAtStart = filterValues.updatedAtStart;
       if (filterValues.updatedAtEnd) queryParams.updatedAtEnd = filterValues.updatedAtEnd;
 
-      const url = `${window.GlobalConfig.apiBaseUrl}?${new URLSearchParams(queryParams).toString()}`; // Use GlobalConfig
+      const url = `${window.GlobalConfig.apiBaseUrl}?${new URLSearchParams(queryParams).toString()}`;
 
       oboe({
         url: url,
@@ -335,13 +321,15 @@
       })
         .node('!', (record) => {
         if (record.type === 'data') {
-          this.renderer.removeLoadingRow(); // Still need to remove initial loading row before appending data
+          if ($('#loading-row').length) {
+            this.renderer.removeLoadingRow();
+          }
           this.renderer.appendRow(this.renderer.createRowHtml(record.value));
         } else if (record.type === 'pagination_metadata') {
           this.totalItems = record.value.totalItems;
-          this.totalPages = Math.ceil(this.totalItems / window.GlobalConfig.pagination.pageSize); // Use GlobalConfig
+          this.totalPages = Math.ceil(this.totalItems / window.GlobalConfig.pagination.pageSize);
           this.currentPage = record.value.currentPage;
-          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages); // Pass totalItems
+          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
 
           console.log('Received Pagination Metadata:', record.value);
         } else if (record.type === 'done') {
@@ -353,23 +341,21 @@
         this.stopLoading();
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         console.log('Oboe stream completed.');
-        this.renderer.setLoadingState(false); // Optimized: use setLoadingState
+        this.renderer.setLoadingState(false);
         if (this.totalItems === 0) {
-          this.renderer.clearTableBody(); // Clear if no items found after load
+          this.renderer.clearTableBody();
         }
       })
         .fail((error) => {
         console.error('Stream failed:', error);
         let errorMessage = 'Failed to load users. Please try again later.';
 
-        // Check if it's an HTTP error with a status code
         if (error && typeof error.statusCode === 'number') {
           if (error.statusCode >= 400 && error.statusCode < 500) {
             errorMessage = `Failed to load users. Client error (Status: ${error.statusCode}).`;
             if (error.json && error.json.message) {
               errorMessage += ` Details: ${error.json.message}`;
             } else if (error.thrown) {
-              // If it's a thrown error (e.g., from network issues), this might be relevant
               errorMessage += ` Details: ${error.thrown.message || error.thrown}`;
             }
           } else if (error.statusCode >= 500 && error.statusCode < 600) {
@@ -378,7 +364,6 @@
             errorMessage = `Failed to load users. Unexpected status: ${error.statusCode}.`;
           }
         } else {
-          // Assume network error or other client-side issue if no status code
           errorMessage = 'Failed to load users. Please check your internet connection or the server status.';
         }
 
@@ -387,16 +372,13 @@
         this.totalItems = 0;
         this.totalPages = 0;
         this.currentPage = 0;
-        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages); // Pass totalItems
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
-        this.renderer.setLoadingState(false); // Optimized: use setLoadingState
+        this.renderer.setLoadingState(false);
         this.renderer.clearTableBody();
       });
     }
 
-    /**
-     * Clears all filter input fields and reloads the user list.
-     */
     clearFilters() {
       if (!this.filterService.hasActiveFilters()) {
         console.log('No active filters to clear.');
@@ -407,7 +389,6 @@
       this.loadUsers(0);
     }
 
-    // Handles pagination link clicks
     handlePaginationClick(event) {
       event.preventDefault();
 
@@ -420,7 +401,6 @@
       }
     }
 
-    // Navigates to a specific page
     goToPage(page) {
       if (page >= 0 && page < this.totalPages && page !== this.currentPage) {
         this.loadUsers(page);
@@ -429,9 +409,7 @@
       }
     }
 
-    // Handles click on edit button
     handleEditButtonClick(event) {
-      // Use event.currentTarget for delegated events
       const userId = $(event.currentTarget).data('id');
       if (typeof window.openModalForEdit === 'function') {
         window.openModalForEdit(userId);
@@ -440,9 +418,7 @@
       }
     }
 
-    // Handles click on delete button
     async handleDeleteButtonClick(event) {
-      // Use event.currentTarget for delegated events
       const userId = $(event.currentTarget).data('id');
       window.showConfirmationModal('Are you sure you want to delete this user?', async () => {
         try {
@@ -457,9 +433,7 @@
       });
     }
 
-    // Handles click on sortable table headers
     handleSortHeaderClick(event) {
-      // Use event.currentTarget for delegated events
       const $header = $(event.currentTarget);
       const field = $header.data('sort-field');
 
@@ -473,14 +447,13 @@
       this.loadUsers(0);
     }
 
-    // Handles user added/updated events to reload the table
-    handleUserUpdateEvent(data) { // Removed 'event' parameter as EventBus only passes data
+    handleUserUpdateEvent(data) {
+      // Log to verify if this event handler is triggered
       console.log(`User data changed (via EventBus):`, data);
       this.loadUsers(this.currentPage);
     }
   }
 
-  // Initialize the UserListTable component when the document is ready
   $(document).ready(() => {
     new UserListTable();
   });

@@ -2,6 +2,7 @@ package org.ost.investigate.springboot.examples.rest;
 
 import static org.springframework.http.MediaType.APPLICATION_NDJSON_VALUE;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -52,7 +53,7 @@ public class UserController {
         return metadataFlux
             .concatWith(dataFlux)
             .concatWith(doneFlux)
-            //            .delayElements(Duration.ofMillis(100))
+                        .delayElements(Duration.ofMillis(100))
             .doOnError(e -> log.error("Error fetching users", e));
     }
 
