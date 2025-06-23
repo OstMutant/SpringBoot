@@ -6,6 +6,11 @@ body {
   color: #333;
 }
 
+/* NEW: Class to disable body scroll when modal is open */
+body.modal-open-no-scroll {
+  overflow: hidden !important;
+}
+
 h4 {
   color: #2c3e50;
   margin-bottom: 20px;
@@ -36,24 +41,17 @@ h4 {
   flex-direction: row;
   flex-wrap: wrap;
   gap: 15px 20px;
-  align-items: flex-start; /* Align all groups to the top, as labels are above inputs */
+  align-items: flex-start;
   justify-content: flex-start;
 }
 
 /* Filter Group - each group holds a label and an input stacked vertically */
 .filter-group {
   display: flex;
-  flex-direction: column; /* Stack label and input */
-  align-items: flex-start; /* Align contents (label, input) to the start (left) */
-  gap: 4px; /* Small gap between label and input */
-  /* These properties are handled by .filter-block for wrapping and sizing of the groups */
-  /* flex-wrap: wrap; */
-  /* flex-shrink: 0; */
-  /* flex-basis: auto; */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
-
-/* Removed .input-control styles as label and input are direct children of .filter-group now */
-/* No .input-control class in user_list.html as per latest review */
 
 /* Specific width adjustments for input fields */
 .filter-group input[type="number"] {
@@ -64,34 +62,31 @@ h4 {
 .filter-group input[type="text"] {
   min-width: 160px;
   max-width: 250px;
-  /* Removed flex-grow as it's not needed for stacking */
 }
 
 .filter-group input[type="date"] {
   width: 140px;
   max-width: 100%;
-  /* Removed flex-grow as it's not needed for stacking */
 }
 
 /* New: Container for Load and Clear Filters buttons */
 .filter-buttons-container {
   max-width: 1200px;
-  margin: 0 auto 20px; /* Center horizontally, 20px margin at bottom */
-  padding: 0 20px; /* Match horizontal padding of filter-block */
+  margin: 0 auto 20px;
+  padding: 0 20px;
   display: flex;
-  justify-content: flex-end; /* Align buttons to the right */
-  gap: 10px; /* Space between buttons */
-  align-items: center; /* Vertically center buttons if they had different heights */
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
 }
 
 /* Style for labels within filter groups */
 .filter-group .form-label {
-  margin-bottom: 0; /* Remove default bottom margin for labels */
+  margin-bottom: 0;
   white-space: nowrap;
   font-weight: 500;
   color: #555;
   flex-shrink: 0;
-  /* Removed height, display:flex, align-items:center as labels are now above inputs */
 }
 
 /* Form controls (inputs, selects) */
@@ -102,7 +97,7 @@ h4 {
   padding: 8px 12px;
   background-color: #f8f8f8;
   color: #333;
-  height: calc(1.5em + .75rem + 2px); /* Standard Bootstrap form-control height for consistency */
+  height: calc(1.5em + .75rem + 2px);
   min-width: 0;
 }
 
