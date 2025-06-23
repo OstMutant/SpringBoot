@@ -8,10 +8,13 @@ import java.time.Instant; // Changed from LocalDate to Instant
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserFilter {
-    private String nameFilter;
+public class AdvertisementFilter {
+    private String titleFilter;
+    private String categoryFilter;
+    private String locationFilter;
+    private String statusFilter; // e.g., "ACTIVE", "EXPIRED", "DRAFT"
 
-    // Changed from LocalDate to Instant, removed @DateTimeFormat
+    // Changed from LocalDate to Instant
     private Instant createdAtStart;
     private Instant createdAtEnd;
     private Instant updatedAtStart;

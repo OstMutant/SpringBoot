@@ -1,8 +1,8 @@
 (function() {
   /**
-   * Class responsible for rendering the user table and pagination controls.
+   * Class responsible for rendering the advertisement table and pagination controls.
    */
-  class UserTableRenderer {
+  class AdvertisementTableRenderer {
     constructor($tableBody, $paginationInfo, $paginationList, $tableHeaders, pageSize) {
       this.$tableBody = $tableBody;
       this.$paginationInfo = $paginationInfo;
@@ -29,7 +29,7 @@
 
     /**
      * Renders pagination controls dynamically.
-     * @param {number} totalItems - Total number of items (added parameter)
+     * @param {number} totalItems - Total number of items.
      * @param {number} currentPage - Current page index.
      * @param {number} totalPages - Total number of pages.
      */
@@ -37,7 +37,7 @@
       this.$paginationList.empty();
 
       if (totalPages <= 1) {
-        this.updatePaginationInfo(totalItems, currentPage, totalPages); // Use passed totalItems
+        this.updatePaginationInfo(totalItems, currentPage, totalPages);
         return;
       }
 
@@ -68,32 +68,38 @@
         </li>
       `);
 
-      this.updatePaginationInfo(totalItems, currentPage, totalPages); // Use passed totalItems
+      this.updatePaginationInfo(totalItems, currentPage, totalPages);
     }
 
     /**
-     * Creates an HTML table row string for a given user object.
-     * @param {object} value - The user object.
+     * Creates an HTML table row string for a given advertisement object.
+     * @param {object} value - The advertisement object.
      * @returns {string} - The HTML string for a table row.
      */
     createRowHtml(value) {
       const createdAt = value.createdAt ? new Date(value.createdAt).toLocaleString() : 'N/A';
       const updatedAt = value.updatedAt ? new Date(value.updatedAt).toLocaleString() : 'N/A';
 
-      const sanitizedName = $('<div>').text(value.name).html();
+      const sanitizedTitle = $('<div>').text(value.title).html();
+      const sanitizedCategory = $('<div>').text(value.category).html();
+      const sanitizedLocation = $('<div>').text(value.location).html();
+      const sanitizedStatus = $('<div>').text(value.status).html();
 
       return `
-        <tr id="user-row-${value.id}">
+        <tr id="ad-row-${value.id}">
           <td><div class="td-content">${value.id}</div></td>
-          <td><div class="td-content td-name-content">${sanitizedName}</div></td>
+          <td><div class="td-content td-name-content">${sanitizedTitle}</div></td>
+          <td><div class="td-content">${sanitizedCategory}</div></td>
+          <td><div class="td-content">${sanitizedLocation}</div></td>
+          <td><div class="td-content">${sanitizedStatus}</div></td>
           <td><div class="td-content">${createdAt}</div></td>
           <td><div class="td-content">${updatedAt}</div></td>
           <td>
             <div class="td-content td-actions-content">
-              <button class="btn btn-primary edit-button me-2" data-id="${value.id}" title="Edit User">
+              <button class="btn btn-primary edit-button" data-id="${value.id}" title="Edit Advertisement">
                 <img src="/icons/icon-pencil.svg" alt="Edit" width="16" height="16">
               </button>
-              <button class="btn btn-danger delete-button" data-id="${value.id}" title="Delete User">
+              <button class="btn btn-danger delete-button" data-id="${value.id}" title="Delete Advertisement">
                 <img src="/icons/icon-trash.svg" alt="Delete" width="16" height="16">
               </button>
             </div>
@@ -156,14 +162,14 @@
     showLoadingRow() {
       this.$tableBody.append(`
         <tr id="loading-row">
-            <td colspan="5" class="text-center py-4 text-muted">Loading users...</td>
+            <td colspan="8" class="text-center py-4 text-muted">Loading advertisements...</td>
         </tr>
       `);
     }
 
     /**
      * Appends a new row to the table body.
-     * @param {string} html - The HTML string for a table row.
+     * @param {string} html - The HTML string for the table row.
      */
     appendRow(html) {
       this.$tableBody.append(html);
@@ -191,33 +197,35 @@
   }
 
 
-  class UserListTable {
+  class AdvertisementListTable {
     constructor() {
-      this.$loadButton = $('#loadButton');
-      this.$tableBody = $('#tableBody'); // Now uses specific ID for user table body
-      this.$startId = $('#startId');
-      this.$endId = $('#endId');
-      this.$paginationInfo = $('#paginationInfo');
-      this.$paginationList = $('#paginationList');
-      // Corrected selector: Find table headers within the specific user table tbody's closest table
-      this.$tableHeaders = $('#tableBody').closest('table').find('th[data-sort-field]');
-      // Corrected selector: Find the thead relative to the specific user table tbody
-      this.$tableHead = $('#tableBody').closest('table').find('thead');
+      this.$loadButton = $('#loadAdsButton');
+      this.$tableBody = $('#adTableBody'); // Specific ID for advertisement table body
+      this.$startId = $('#adStartId'); // Specific ID for advertisement filter
+      this.$endId = $('#adEndId'); // Specific ID for advertisement filter
+      this.$paginationInfo = $('#adPaginationInfo'); // Specific ID for advertisement pagination
+      this.$paginationList = $('#adPaginationList'); // Specific ID for advertisement pagination
+      // Corrected selector: Find table headers within the specific advertisement table
+      this.$tableHeaders = $('#adTableBody').closest('table').find('th[data-sort-field]');
+      this.$tableHead = $('#adTableBody').closest('table').find('thead'); // Find thead relative to adTableBody
 
-      this.$filterName = $('#filterName');
-      this.$filterCreatedAtStart = $('#filterCreatedAtStart');
-      this.$filterCreatedAtEnd = $('#filterCreatedAtEnd');
-      this.$filterUpdatedAtStart = $('#filterUpdatedAtStart');
-      this.$filterUpdatedAtEnd = $('#filterUpdatedAtEnd');
-      this.$clearFiltersButton = $('#clearFiltersButton');
+      this.$filterTitle = $('#filterTitle'); // Specific ID for advertisement filter
+      this.$filterCategory = $('#filterCategory'); // Specific ID for advertisement filter
+      this.$filterLocation = $('#filterLocation'); // Specific ID for advertisement filter
+      this.$filterStatus = $('#filterStatus'); // Specific ID for advertisement filter
+      this.$filterCreatedAtStart = $('#filterAdCreatedAtStart'); // Specific ID for advertisement filter
+      this.$filterCreatedAtEnd = $('#filterAdCreatedAtEnd'); // Specific ID for advertisement filter
+      this.$filterUpdatedAtStart = $('#filterAdUpdatedAtStart'); // Specific ID for advertisement filter
+      this.$filterUpdatedAtEnd = $('#filterAdUpdatedAtEnd'); // Specific ID for advertisement filter
+      this.$clearFiltersButton = $('#clearAdsFiltersButton'); // Specific ID for advertisement filter
 
       this.currentPage = 0;
       this.totalItems = 0;
       this.totalPages = 0;
-      this.currentSortField = window.GlobalConfig.defaultSort.field;
-      this.currentSortDirection = window.GlobalConfig.defaultSort.direction;
+      this.currentSortField = window.GlobalConfig.defaultSort.field; // Using global config
+      this.currentSortDirection = window.GlobalConfig.defaultSort.direction; // Using global config
 
-      this.renderer = new UserTableRenderer(
+      this.renderer = new AdvertisementTableRenderer(
         this.$tableBody,
         this.$paginationInfo,
         this.$paginationList,
@@ -225,34 +233,41 @@
         window.GlobalConfig.pagination.pageSize
       );
 
-      // Instantiate UserFilterService instead of generic FilterService
-      this.filterService = new window.UserFilterService(
+      // Instantiate AdvertisementFilterService with all advertisement-specific filter elements
+      this.filterService = new window.AdvertisementFilterService(
         this.$startId,
         this.$endId,
-        this.$filterName,
+        this.$filterTitle,
+        this.$filterCategory,
+        this.$filterLocation,
+        this.$filterStatus,
         this.$filterCreatedAtStart,
         this.$filterCreatedAtEnd,
         this.$filterUpdatedAtStart,
         this.$filterUpdatedAtEnd
       );
 
-      // NO initial loadUsers(0) call here anymore.
+      // NO initial loadAdvertisements(0) call here anymore.
       // Loading will be triggered by Bootstrap tab 'shown.bs.tab' event or explicit button click.
 
-      this.$loadButton.on('click', this.loadUsers.bind(this, 0));
+
+      this.$loadButton.on('click', this.loadAdvertisements.bind(this, 0));
       this.$clearFiltersButton.on('click', this.clearFilters.bind(this));
       this.$paginationList.on('click', '.page-link', this.handlePaginationClick.bind(this));
 
-      window.EventBus.on('user:added', this.handleUserUpdateEvent.bind(this));
-      window.EventBus.on('user:updated', this.handleUserUpdateEvent.bind(this));
+      // Listen to custom events for advertisement updates (e.g., from modal)
+      window.EventBus.on('advertisement:added', this.handleAdvertisementUpdateEvent.bind(this));
+      window.EventBus.on('advertisement:updated', this.handleAdvertisementUpdateEvent.bind(this));
 
 
+      // Changed event listeners to use the generic 'edit-button' and 'delete-button' classes
       this.$tableBody.on('click', '.edit-button', this.handleEditButtonClick.bind(this));
       this.$tableBody.on('click', '.delete-button', this.handleDeleteButtonClick.bind(this));
       // Attaching the sort handler to the specific table's thead
       this.$tableHead.on('click', 'th[data-sort-field]', this.handleSortHeaderClick.bind(this));
 
 
+      // Date filter change handlers
       this.$filterCreatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtStart, this.$filterCreatedAtEnd, 'max', 'min'));
       this.$filterCreatedAtEnd.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtEnd, this.$filterCreatedAtStart, 'min', 'max'));
       this.$filterUpdatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterUpdatedAtStart, this.$filterUpdatedAtEnd, 'max', 'min'));
@@ -261,26 +276,27 @@
       this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
 
       // Bootstrap tab event listeners
-      const settingsTabTriggerEl = document.querySelector('#settings-tab');
-      if (settingsTabTriggerEl) {
-        settingsTabTriggerEl.addEventListener('shown.bs.tab', event => {
-          console.log('Settings tab shown, loading users...');
-          this.loadUsers(0); // Load users when settings tab becomes active
+      const mainTabTriggerEl = document.querySelector('#main-tab');
+      if (mainTabTriggerEl) {
+        mainTabTriggerEl.addEventListener('shown.bs.tab', event => {
+          console.log('Main tab shown, loading advertisements...');
+          this.loadAdvertisements(0); // Load advertisements when main tab becomes active
         });
-        settingsTabTriggerEl.addEventListener('hidden.bs.tab', event => {
-          console.log('Settings tab hidden, clearing user table...');
-          this.renderer.clearTableBody(); // Clear table when settings tab becomes inactive
+        mainTabTriggerEl.addEventListener('hidden.bs.tab', event => {
+          console.log('Main tab hidden, clearing advertisement table...');
+          this.renderer.clearTableBody(); // Clear table when main tab becomes inactive
           this.$paginationInfo.empty(); // Clear pagination info
         });
       }
 
-      // Initial load if settings tab is already active on page load
-      if ($('#settings-tab').hasClass('active')) {
-        console.log('Settings tab is initially active, loading users...');
-        this.loadUsers(0);
+      // Initial load if main tab is already active on page load
+      if ($('#main-tab').hasClass('active')) {
+        console.log('Main tab is initially active, loading advertisements...');
+        this.loadAdvertisements(0);
       }
     }
 
+    // Handles changes in date filter inputs to set min/max attributes
     handleDateFilterChange($changedInput, $targetInput, changedAttr, targetAttr) {
       const value = $changedInput.val();
       if (value) {
@@ -297,7 +313,7 @@
 
     // Resets load button state
     stopLoading() {
-      this.$loadButton.text('Load').prop('disabled', false);
+      this.$loadButton.text('Load Ads').prop('disabled', false);
     }
 
     // Displays an error message using the custom UI feedback from utils.js
@@ -305,17 +321,16 @@
       window.showUserFeedback(message, 'danger');
     }
 
-    // Loads users from the server using Oboe.js
-    loadUsers(page = 0) {
+    // Loads advertisements from the server using Oboe.js
+    loadAdvertisements(page = 0) {
       this.currentPage = page;
       this.startLoading();
 
       this.renderer.setLoadingState(true);
 
-      // FIX: Changed getUserFilterValues to getFilterValues
-      const filterValues = this.filterService.getFilterValues();
+      const filterValues = this.filterService.getAdvertisementFilterValues(); // Correctly call method on AdvertisementFilterService
 
-      if (!window.InputValidator.validateUserFilters(filterValues, this.showError)) {
+      if (!window.InputValidator.validateAdvertisementFilters(filterValues, this.showError)) { // New validation method
         this.stopLoading();
         this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
@@ -323,7 +338,7 @@
         return;
       }
 
-      // Convert date strings from input[type="date"] to ISO 8601 Instant format (e.g., "YYYY-MM-DDTHH:mm:ss.SSSZ")
+      // Convert date strings from input[type="date"] to ISO 8601 Instant format
       const formattedFilterValues = { ...filterValues };
       if (formattedFilterValues.createdAtStart) {
         formattedFilterValues.createdAtStart = new Date(formattedFilterValues.createdAtStart + 'T00:00:00.000Z').toISOString();
@@ -347,21 +362,26 @@
 
       if (formattedFilterValues.startId !== null) queryParams.startId = formattedFilterValues.startId;
       if (formattedFilterValues.endId !== null) queryParams.endId = formattedFilterValues.endId;
-      if (formattedFilterValues.nameFilter) queryParams.nameFilter = formattedFilterValues.nameFilter;
+      if (formattedFilterValues.titleFilter) queryParams.titleFilter = formattedFilterValues.titleFilter;
+      if (formattedFilterValues.categoryFilter) queryParams.categoryFilter = formattedFilterValues.categoryFilter;
+      if (formattedFilterValues.locationFilter) queryParams.locationFilter = formattedFilterValues.locationFilter;
+      if (formattedFilterValues.statusFilter) queryParams.statusFilter = formattedFilterValues.statusFilter;
       if (formattedFilterValues.createdAtStart) queryParams.createdAtStart = formattedFilterValues.createdAtStart;
       if (formattedFilterValues.createdAtEnd) queryParams.createdAtEnd = formattedFilterValues.createdAtEnd;
       if (formattedFilterValues.updatedAtStart) queryParams.updatedAtStart = formattedFilterValues.updatedAtStart;
       if (formattedFilterValues.updatedAtEnd) queryParams.updatedAtEnd = formattedFilterValues.updatedAtEnd;
 
-      const url = `${window.GlobalConfig.userApiBaseUrl}?${new URLSearchParams(queryParams).toString()}`; // Use userApiBaseUrl
 
+      const url = `${window.GlobalConfig.advertisementApiBaseUrl}?${new URLSearchParams(queryParams).toString()}`; // New API base URL for ads
+
+      console.log('Fetching advertisements URL:', url); // Log the URL being fetched
 
       oboe({
         url: url,
         method: 'GET'
       })
         .start(() => {
-        console.log('Oboe stream started for /users');
+        console.log('Oboe stream started for /advertisements');
       })
         .node('!', (record) => {
         if (record.type === 'data') {
@@ -392,23 +412,23 @@
       })
         .fail((error) => {
         console.error('Stream failed:', error);
-        let errorMessage = 'Failed to load users. Please try again later.';
+        let errorMessage = 'Failed to load advertisements. Please try again later.';
 
         if (error && typeof error.statusCode === 'number') {
           if (error.statusCode >= 400 && error.statusCode < 500) {
-            errorMessage = `Failed to load users. Client error (Status: ${error.statusCode}).`;
+            errorMessage = `Failed to load advertisements. Client error (Status: ${error.statusCode}).`;
             if (error.json && error.json.message) {
               errorMessage += ` Details: ${error.json.message}`;
             } else if (error.thrown) {
               errorMessage += ` Details: ${error.thrown.message || error.thrown}`;
             }
           } else if (error.statusCode >= 500 && error.statusCode < 600) {
-            errorMessage = `Failed to load users. Server error (Status: ${error.statusCode}).`;
+            errorMessage = `Failed to load advertisements. Server error (Status: ${error.statusCode}).`;
           } else {
-            errorMessage = `Failed to load users. Unexpected status: ${error.statusCode}.`;
+            errorMessage = `Failed to load advertisements. Unexpected status: ${error.statusCode}.`;
           }
         } else {
-          errorMessage = 'Failed to load users. Please check your internet connection or the server status.';
+          errorMessage = 'Failed to load advertisements. Please check your internet connection or the server status.';
         }
 
         this.showError(errorMessage);
@@ -423,17 +443,22 @@
       });
     }
 
+    /**
+     * Clears all filter input fields and reloads the advertisement list.
+     */
     clearFilters() {
-      // Call clearUserFilterFields on UserFilterService instance
-      if (!this.filterService.hasActiveFilter()) { // Corrected method name
-        console.log('No active filters to clear.');
+      // Correctly call hasActiveAdvertisementFilters on AdvertisementFilterService instance
+      if (!this.filterService.hasActiveAdvertisementFilters()) {
+        console.log('No active advertisement filters to clear.');
         return;
       }
 
-      this.filterService.clearFilterFields(); // Corrected method name
-      this.loadUsers(0);
+      // Correctly call clearAdvertisementFilterFields on AdvertisementFilterService instance
+      this.filterService.clearAdvertisementFilterFields();
+      this.loadAdvertisements(0);
     }
 
+    // Handles pagination link clicks
     handlePaginationClick(event) {
       event.preventDefault();
 
@@ -449,36 +474,40 @@
     // Navigates to a specific page
     goToPage(page) {
       if (page >= 0 && page < this.totalPages && page !== this.currentPage) {
-        this.loadUsers(page);
+        this.loadAdvertisements(page);
       } else {
         console.log(`Attempted to go to current or invalid page: ${page}. Current: ${this.currentPage}, Total Pages: ${this.totalPages}`);
       }
     }
 
+    // Handles click on edit button
     handleEditButtonClick(event) {
-      const userId = $(event.currentTarget).data('id');
-      if (typeof window.openModalForEdit === 'function') {
-        window.openModalForEdit(userId, event.currentTarget); // Pass native DOM element
+      const adId = $(event.currentTarget).data('id');
+      // openModalForEdit is a global function from the modal.js, we need a new one for ads
+      if (typeof window.openAdModalForEdit === 'function') { // New function name
+        window.openAdModalForEdit(adId, event.currentTarget); // Pass the native DOM element
       } else {
-        console.error('openModalForEdit function not found. Ensure modal.js is loaded and exposes openModalForEdit globally.');
+        console.error('openAdModalForEdit function not found. Ensure ad_modal.js is loaded and exposes openAdModalForEdit globally.');
       }
     }
 
+    // Handles click on delete button
     async handleDeleteButtonClick(event) {
-      const userId = $(event.currentTarget).data('id');
-      window.showConfirmationModal('Are you sure you want to delete this user?', async () => {
+      const adId = $(event.currentTarget).data('id');
+      window.showConfirmationModal('Are you sure you want to delete this advertisement?', async () => {
         try {
-          await window.Api.deleteUser(userId);
+          await window.Api.deleteAdvertisement(adId); // New API method
 
-          this.loadUsers(this.currentPage);
-          window.showUserFeedback('User deleted successfully', 'success');
+          this.loadAdvertisements(this.currentPage);
+          window.showUserFeedback('Advertisement deleted successfully', 'success');
         } catch (error) {
-          console.error('Failed to delete user:', error);
-          this.showError('Failed to delete user. Please try again later.');
+          console.error('Failed to delete advertisement:', error);
+          this.showError('Failed to delete advertisement. Please try again later.');
         }
       });
     }
 
+    // Handles click on sortable table headers
     handleSortHeaderClick(event) {
       const $header = $(event.currentTarget);
       const field = $header.data('sort-field');
@@ -490,17 +519,18 @@
         this.currentSortDirection = 'asc';
       }
 
-      this.loadUsers(0);
+      this.loadAdvertisements(0);
     }
 
-    handleUserUpdateEvent(data) {
-      // Log to verify if this event handler is triggered
-      console.log(`User data changed (via EventBus):`, data);
-      this.loadUsers(this.currentPage);
+    // Handles advertisement added/updated events to reload the table
+    handleAdvertisementUpdateEvent(data) {
+      console.log(`Advertisement data changed (via EventBus):`, data);
+      this.loadAdvertisements(this.currentPage);
     }
   }
 
+  // Initialize the AdvertisementListTable component when the document is ready
   $(document).ready(() => {
-    new UserListTable();
+    new AdvertisementListTable();
   });
 })();

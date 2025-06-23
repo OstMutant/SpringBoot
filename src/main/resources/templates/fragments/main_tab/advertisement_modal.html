@@ -1,0 +1,57 @@
+<div data-th-fragment="adModal">
+  <!-- Advertisement Modal -->
+  <div class="modal fade" id="adModal" tabindex="-1" aria-labelledby="adModalTitle" aria-modal="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="adModalTitle">Add Advertisement</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="modalAdTitle" class="form-label">Title</label>
+            <input type="text" id="modalAdTitle" class="form-control" placeholder="Enter title" required maxlength="255">
+            <div id="modalAdTitleError" class="invalid-feedback">Title cannot be empty.</div>
+          </div>
+          <div class="mb-3">
+            <label for="modalAdDescription" class="form-label">Description</label>
+            <textarea id="modalAdDescription" class="form-control" placeholder="Enter description" rows="3"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="modalAdCategory" class="form-label">Category</label>
+            <input type="text" id="modalAdCategory" class="form-control" placeholder="e.g., Electronics, Real Estate">
+          </div>
+          <div class="mb-3">
+            <label for="modalAdLocation" class="form-label">Location</label>
+            <input type="text" id="modalAdLocation" class="form-control" placeholder="e.g., Kyiv, Lviv">
+          </div>
+          <div class="mb-3">
+            <label for="modalAdContactInfo" class="form-label">Contact Info</label>
+            <input type="text" id="modalAdContactInfo" class="form-control" placeholder="e.g., +380XXXXXXXXX, email@example.com">
+          </div>
+          <div class="mb-3">
+            <label for="modalAdImageUrls" class="form-label">Image URLs (comma-separated)</label>
+            <input type="text" id="modalAdImageUrls" class="form-control" placeholder="e.g., url1,url2">
+          </div>
+          <div class="mb-3">
+            <label for="modalAdStatus" class="form-label">Status</label>
+            <select id="modalAdStatus" class="form-select">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="EXPIRED">EXPIRED</option>
+              <option value="DRAFT">DRAFT</option>
+              <option value="SOLD">SOLD</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="modalAdUserId" class="form-label">User ID (Author)</label>
+            <input type="number" id="modalAdUserId" class="form-control" placeholder="Enter user ID" min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveAdButton">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,123 @@
+<div data-th-fragment="advertisementList">
+
+  <!-- Add Advertisement button -->
+  <div class="add-user-button-container mb-4">
+    <button id="addAdButton" type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#adModal">
+      Add Advertisement
+    </button>
+  </div>
+
+  <!-- Combined Controls and Filter Block for Advertisements -->
+  <div class="filter-block mb-4">
+    <!-- ID Filters -->
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="adStartId" class="form-label">ID From:</label>
+        <input type="number" id="adStartId" placeholder="Start ID" min="1" class="form-control">
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="adEndId" class="form-label">ID To:</label>
+        <input type="number" id="adEndId" placeholder="End ID" min="1" class="form-control">
+      </div>
+    </div>
+
+    <!-- Title Filter -->
+    <div class="filter-group filter-group-name">
+      <div class="input-control">
+        <label for="filterTitle" class="form-label">Title:</label>
+        <input type="text" id="filterTitle" placeholder="Title" class="form-control">
+      </div>
+    </div>
+
+    <!-- Category Filter -->
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterCategory" class="form-label">Category:</label>
+        <input type="text" id="filterCategory" placeholder="Category" class="form-control">
+      </div>
+    </div>
+
+    <!-- Location Filter -->
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterLocation" class="form-label">Location:</label>
+        <input type="text" id="filterLocation" placeholder="Location" class="form-control">
+      </div>
+    </div>
+
+    <!-- Status Filter -->
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterStatus" class="form-label">Status:</label>
+        <input type="text" id="filterStatus" placeholder="Status" class="form-control">
+      </div>
+    </div>
+
+    <!-- Created At Date Filters -->
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterAdCreatedAtStart" class="form-label">Created From:</label>
+        <input type="date" id="filterAdCreatedAtStart" title="Created After" class="form-control">
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterAdCreatedAtEnd" class="form-label">Created To:</label>
+        <input type="date" id="filterAdCreatedAtEnd" title="Created Before" class="form-control">
+      </div>
+    </div>
+
+    <!-- Updated At Date Filters -->
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterAdUpdatedAtStart" class="form-label">Updated From:</label>
+        <input type="date" id="filterAdUpdatedAtStart" title="Updated After" class="form-control">
+      </div>
+    </div>
+    <div class="filter-group">
+      <div class="input-control">
+        <label for="filterAdUpdatedAtEnd" class="form-label">Updated To:</label>
+        <input type="date" id="filterAdUpdatedAtEnd" title="Updated Before" class="form-control">
+      </div>
+    </div>
+  </div>
+
+  <!-- Load and Clear Filters buttons -->
+  <div class="filter-buttons-container mb-4">
+    <button id="loadAdsButton" class="btn btn-primary me-2">Load Ads</button>
+    <button id="clearAdsFiltersButton" class="btn btn-secondary">Clear Filters</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover">
+      <thead>
+      <tr>
+        <th scope="col" data-sort-field="id">Id <span class="sort-icon"></span></th>
+        <th scope="col" data-sort-field="title">Title <span class="sort-icon"></span></th>
+        <th scope="col" data-sort-field="category">Category <span class="sort-icon"></span></th>
+        <th scope="col" data-sort-field="location">Location <span class="sort-icon"></span></th>
+        <th scope="col" data-sort-field="status">Status <span class="sort-icon"></span></th>
+        <th scope="col" data-sort-field="createdAt">Created At <span class="sort-icon"></span></th>
+        <th scope="col" data-sort-field="updatedAt">Updated At <span class="sort-icon"></span></th>
+        <th scope="col">Actions</th>
+      </tr>
+      </thead>
+      <tbody id="adTableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination Information -->
+  <div class="pagination-info-text mt-3 mb-2">
+    <span id="adPaginationInfo"></span>
+  </div>
+
+  <!-- Pagination -->
+  <nav aria-label="Advertisement page navigation">
+    <ul class="pagination justify-content-center" id="adPaginationList">
+    </ul>
+  </nav>
+</div>

@@ -12,9 +12,14 @@
   <script data-th-src="@{/js/bootstrap.min.js}"></script>
   <script data-th-src="@{/js/oboe-browser.min.js}"></script>
 
-  <script data-th-src="@{/js/custom/users/utils.js}"></script>
+  <!-- JavaScript files for User management (for Settings tab) -->
+  <script data-th-src="@{/js/custom/utils.js}"></script> <!-- Corrected path for utils.js -->
   <script data-th-src="@{/js/custom/users/modal.js}"></script>
   <script data-th-src="@{/js/custom/users/user_list.js}"></script>
+
+  <!-- NEW: JavaScript files for Advertisement management (for Main tab) -->
+  <script data-th-src="@{/js/custom/advertisements/advertisement_modal.js}"></script>
+  <script data-th-src="@{/js/custom/advertisements/advertisement_list.js}"></script>
 
   <title>Spring Boot Application</title>
 </head>
@@ -38,9 +43,11 @@
 <div class="tab-content" id="myTabContent">
   <!-- 'show active' classes initially set for 'main' tab pane by default Bootstrap behavior -->
   <div class="tab-pane fade show active" id="main" role="tabpanel" aria-labelledby="main-tab">
+    <!-- Main tab content now includes Advertisement list and modal -->
     <div data-th-insert="~{fragments/main_tab_content :: mainTabContent}"></div>
   </div>
   <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+    <!-- Settings content still includes User list and modal -->
     <div data-th-insert="~{fragments/settings_tab_content :: settingsTabContent}"></div>
   </div>
 </div>
