@@ -1,74 +1,15 @@
 (function() {
+  // Access BaseTableRenderer from window (assuming utils.js is loaded first)
+  const BaseTableRenderer = window.BaseTableRenderer;
+
   /**
    * Class responsible for rendering the advertisement table and pagination controls.
    */
-  class AdvertisementTableRenderer {
+  class AdvertisementTableRenderer extends BaseTableRenderer { // Extend BaseTableRenderer
     constructor($tableBody, $paginationInfo, $paginationList, $tableHeaders, pageSize) {
+      super($paginationInfo, $paginationList, pageSize); // Call parent constructor
       this.$tableBody = $tableBody;
-      this.$paginationInfo = $paginationInfo;
-      this.$paginationList = $paginationList;
       this.$tableHeaders = $tableHeaders;
-      this.pageSize = pageSize;
-    }
-
-    /**
-     * Updates pagination information text.
-     * @param {number} totalItems - Total number of items.
-     * @param {number} currentPage - Current page index.
-     * @param {number} totalPages - Total number of pages.
-     */
-    updatePaginationInfo(totalItems, currentPage, totalPages) {
-      if (totalItems === 0) {
-        this.$paginationInfo.text('No items found.');
-      } else {
-        const startItem = currentPage * this.pageSize + 1;
-        const endItem = Math.min(startItem + this.pageSize - 1, totalItems);
-        this.$paginationInfo.text(`Items ${startItem}-${endItem} of ${totalItems} (Page ${currentPage + 1} of ${totalPages})`);
-      }
-    }
-
-    /**
-     * Renders pagination controls dynamically.
-     * @param {number} totalItems - Total number of items.
-     * @param {number} currentPage - Current page index.
-     * @param {number} totalPages - Total number of pages.
-     */
-    renderPaginationControls(totalItems, currentPage, totalPages) {
-      this.$paginationList.empty();
-
-      if (totalPages <= 1) {
-        this.updatePaginationInfo(totalItems, currentPage, totalPages);
-        return;
-      }
-
-      const prevDisabled = currentPage === 0 ? 'disabled' : '';
-      this.$paginationList.append(`
-        <li class="page-item ${prevDisabled}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span> <span class="sr-only">Previous</span>
-            </a>
-        </li>
-      `);
-
-      for (let i = 0; i < totalPages; i++) {
-        const activeClass = i === currentPage ? 'active' : '';
-        this.$paginationList.append(`
-          <li class="page-item ${activeClass}">
-              <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
-          </li>
-        `);
-      }
-
-      const nextDisabled = currentPage >= totalPages - 1 ? 'disabled' : '';
-      this.$paginationList.append(`
-        <li class="page-item ${nextDisabled}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span> <span class="sr-only">Next</span>
-            </a>
-        </li>
-      `);
-
-      this.updatePaginationInfo(totalItems, currentPage, totalPages);
     }
 
     /**
@@ -169,7 +110,7 @@
 
     /**
      * Appends a new row to the table body.
-     * @param {string} html - The HTML string for the table row.
+     * @param {string} html - The HTML string for a table row.
      */
     appendRow(html) {
       this.$tableBody.append(html);
@@ -234,21 +175,8 @@
       );
 
       // Instantiate AdvertisementFilterService with all advertisement-specific filter elements
-      this.filterService = new window.AdvertisementFilterService(
-        this.$startId,
-        this.$endId,
-        this.$filterTitle,
-        this.$filterCategory,
-        this.$filterLocation,
-        this.$filterStatus,
-        this.$filterCreatedAtStart,
-        this.$filterCreatedAtEnd,
-        this.$filterUpdatedAtStart,
-        this.$filterUpdatedAtEnd
-      );
-
-      // NO initial loadAdvertisements(0) call here anymore.
-      // Loading will be triggered by Bootstrap tab 'shown.bs.tab' event or explicit button click.
+      // Using window.Filters directly as it's an IIFE that returns an object, not a constructor
+      this.filterService = window.Filters;
 
 
       this.$loadButton.on('click', this.loadAdvertisements.bind(this, 0));
@@ -268,10 +196,8 @@
 
 
       // Date filter change handlers
-      this.$filterCreatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtStart, this.$filterCreatedAtEnd, 'max', 'min'));
-      this.$filterCreatedAtEnd.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtEnd, this.$filterCreatedAtStart, 'min', 'max'));
-      this.$filterUpdatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterUpdatedAtStart, this.$filterUpdatedAtEnd, 'max', 'min'));
-      this.$filterUpdatedAtEnd.on('change', this.handleDateFilterChange.bind(this, this.$filterUpdatedAtEnd, this.$filterUpdatedAtStart, 'min', 'max'));
+      window.setupDateRangeValidation(this.$filterCreatedAtStart, this.$filterCreatedAtEnd);
+      window.setupDateRangeValidation(this.$filterUpdatedAtStart, this.$filterUpdatedAtEnd);
 
       this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
 
@@ -293,16 +219,6 @@
       if ($('#main-tab').hasClass('active')) {
         console.log('Main tab is initially active, loading advertisements...');
         this.loadAdvertisements(0);
-      }
-    }
-
-    // Handles changes in date filter inputs to set min/max attributes
-    handleDateFilterChange($changedInput, $targetInput, changedAttr, targetAttr) {
-      const value = $changedInput.val();
-      if (value) {
-        $targetInput.attr(targetAttr, value);
-      } else {
-        $targetInput.removeAttr(targetAttr);
       }
     }
 
@@ -332,7 +248,7 @@
 
       if (!window.InputValidator.validateAdvertisementFilters(filterValues, this.showError)) { // New validation method
         this.stopLoading();
-        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages, this.loadAdvertisements.bind(this));
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         this.renderer.setLoadingState(false);
         return;
@@ -362,10 +278,10 @@
 
       if (formattedFilterValues.startId !== null) queryParams.startId = formattedFilterValues.startId;
       if (formattedFilterValues.endId !== null) queryParams.endId = formattedFilterValues.endId;
-      if (formattedFilterValues.titleFilter) queryParams.titleFilter = formattedFilterValues.titleFilter;
-      if (formattedFilterValues.categoryFilter) queryParams.categoryFilter = formattedFilterValues.categoryFilter;
-      if (formattedFilterValues.locationFilter) queryParams.locationFilter = formattedFilterValues.locationFilter;
-      if (formattedFilterValues.statusFilter) queryParams.statusFilter = formattedFilterValues.statusFilter;
+      if (formattedFilterValues.title) queryParams.titleFilter = formattedFilterValues.title;
+      if (formattedFilterValues.category) queryParams.categoryFilter = formattedFilterValues.category;
+      if (formattedFilterValues.location) queryParams.locationFilter = formattedFilterValues.location;
+      if (formattedFilterValues.status) queryParams.statusFilter = formattedFilterValues.status;
       if (formattedFilterValues.createdAtStart) queryParams.createdAtStart = formattedFilterValues.createdAtStart;
       if (formattedFilterValues.createdAtEnd) queryParams.createdAtEnd = formattedFilterValues.createdAtEnd;
       if (formattedFilterValues.updatedAtStart) queryParams.updatedAtStart = formattedFilterValues.updatedAtStart;
@@ -393,7 +309,9 @@
           this.totalItems = record.value.totalItems;
           this.totalPages = Math.ceil(this.totalItems / window.GlobalConfig.pagination.pageSize);
           this.currentPage = record.value.currentPage;
-          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
+          // IMPORTANT: Call updatePaginationInfo here when pagination metadata is received
+          this.renderer.updatePaginationInfo(this.totalItems, this.currentPage, this.totalPages);
+          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages, this.loadAdvertisements.bind(this));
 
           console.log('Received Pagination Metadata:', record.value);
         } else if (record.type === 'done') {
@@ -408,6 +326,7 @@
         this.renderer.setLoadingState(false);
         if (this.totalItems === 0) {
           this.renderer.clearTableBody();
+          this.renderer.appendRow('<tr><td colspan="8" class="text-center">No advertisements found.</td></tr>');
         }
       })
         .fail((error) => {
@@ -436,10 +355,12 @@
         this.totalItems = 0;
         this.totalPages = 0;
         this.currentPage = 0;
-        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
+        this.renderer.updatePaginationInfo(this.totalItems, this.currentPage, this.totalPages); // Ensure info is cleared/reset on error
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages, this.loadAdvertisements.bind(this));
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         this.renderer.setLoadingState(false);
         this.renderer.clearTableBody();
+        this.renderer.appendRow('<tr><td colspan="8" class="text-center">Error loading advertisements.</td></tr>');
       });
     }
 
@@ -447,13 +368,13 @@
      * Clears all filter input fields and reloads the advertisement list.
      */
     clearFilters() {
-      // Correctly call hasActiveAdvertisementFilters on AdvertisementFilterService instance
+      // Correctly call hasActiveAdvertisementFilters on Filters object
       if (!this.filterService.hasActiveAdvertisementFilters()) {
         console.log('No active advertisement filters to clear.');
         return;
       }
 
-      // Correctly call clearAdvertisementFilterFields on AdvertisementFilterService instance
+      // Correctly call clearAdvertisementFilterFields on Filters object
       this.filterService.clearAdvertisementFilterFields();
       this.loadAdvertisements(0);
     }
@@ -483,7 +404,7 @@
     // Handles click on edit button
     handleEditButtonClick(event) {
       const adId = $(event.currentTarget).data('id');
-      // openModalForEdit is a global function from the modal.js, we need a new one for ads
+      // openAdModalForEdit is a global function from the modal.js
       if (typeof window.openAdModalForEdit === 'function') { // New function name
         window.openAdModalForEdit(adId, event.currentTarget); // Pass the native DOM element
       } else {
@@ -531,6 +452,9 @@
 
   // Initialize the AdvertisementListTable component when the document is ready
   $(document).ready(() => {
-    new AdvertisementListTable();
+    // Check if the advertisementList fragment is present on the page
+    if ($('#advertisementList').length) {
+      new AdvertisementListTable();
+    }
   });
 })();

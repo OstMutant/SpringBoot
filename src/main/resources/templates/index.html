@@ -7,19 +7,27 @@
   <link data-th-href="@{/css/bootstrap.min.css}" rel="stylesheet">
   <link data-th-href="@{/css/styles.css}" rel="stylesheet"/>
 
-  <script data-th-src="@{/js/jquery.min.js}"></script>
-  <script data-th-src="@{/js/popper.min.js}"></script>
-  <script data-th-src="@{/js/bootstrap.min.js}"></script>
-  <script data-th-src="@{/js/oboe-browser.min.js}"></script>
+  <!-- Library JavaScript files (now with 'defer' attribute for proper loading order) -->
+  <!-- 'defer' ensures scripts execute after HTML is parsed, preventing DOM access issues -->
+  <script data-th-src="@{/js/jquery.min.js}" defer></script>
+  <script data-th-src="@{/js/popper.min.js}" defer></script>
+  <script data-th-src="@{/js/bootstrap.min.js}" defer></script>
+  <script data-th-src="@{/js/oboe-browser.min.js}" defer></script>
+  <!-- SweetAlert2 and Alpine.js are included for future use, as specified by the user -->
+  <script data-th-src="@{/js/sweetalert2.min.js}" defer></script>
+  <script data-th-src="@{/js/alpinejs-3.14.9.min.js}" defer></script>
 
-  <!-- JavaScript files for User management (for Settings tab) -->
-  <script data-th-src="@{/js/custom/utils.js}"></script> <!-- Corrected path for utils.js -->
-  <script data-th-src="@{/js/custom/users/modal.js}"></script>
-  <script data-th-src="@{/js/custom/users/user_list.js}"></script>
+  <!-- Custom JavaScript files (now explicitly type="module") -->
+  <!-- utils.js must be a module and loaded before other custom modules that depend on it -->
+  <script type="module" data-th-src="@{/js/custom/utils.js}"></script>
 
-  <!-- NEW: JavaScript files for Advertisement management (for Main tab) -->
-  <script data-th-src="@{/js/custom/advertisements/advertisement_modal.js}"></script>
-  <script data-th-src="@{/js/custom/advertisements/advertisement_list.js}"></script>
+  <!-- Custom modules for user management (Settings tab) -->
+  <script type="module" data-th-src="@{/js/custom/users/modal.js}"></script>
+  <script type="module" data-th-src="@{/js/custom/users/user_list.js}"></script>
+
+  <!-- Custom modules for advertisement management (Main tab) -->
+  <script type="module" data-th-src="@{/js/custom/advertisements/advertisement_modal.js}"></script>
+  <script type="module" data-th-src="@{/js/custom/advertisements/advertisement_list.js}"></script>
 
   <title>Spring Boot Application</title>
 </head>

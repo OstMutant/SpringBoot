@@ -29,98 +29,83 @@
           if (this.lastFocusedElement) {
             this.lastFocusedElement.focus({ preventScroll: true });
             this.lastFocusedElement = null; // Clear the stored element
-          } else {
-            // Fallback to triggerButton, preventing scroll
-            $('#triggerButton').focus({ preventScroll: true });
           }
         });
-
-        userModalElement.addEventListener('shown.bs.modal', () => {
-          // Store current scroll position before modal is shown
-          this.scrollPosition = window.scrollY;
-          // Disable scrolling on HTML and Body
-          document.documentElement.style.overflow = 'hidden'; // Disable scroll on html
-          document.body.style.overflow = 'hidden'; // Disable scroll on body (for consistency)
-
-          // Ensure focus is explicitly on the modal container
-          userModalElement.focus();
-        });
-
-        // Removed the custom 'focusin' event listener to avoid conflict with Bootstrap's a11y focus management
-        // userModalElement.addEventListener('focusin', (event) => {
-        //   if (!userModalElement.contains(event.target)) {
-        //     userModalElement.focus();
-        //   }
-        // });
-
-      } else {
-        console.warn("Bootstrap Modal not found or element not ready. Falling back to jQuery .modal().");
       }
 
-      this.$saveButton.on('click', this.saveUser.bind(this));
-      this.$modalName.on('input', this.handleNameInput.bind(this));
+      this.$saveButton.on('click', this.handleSaveUser.bind(this));
 
-      // Handle click on any data-bs-dismiss="modal" button within this specific modal (e.g., Close, Cancel)
-      $(userModalElement).on('click', '[data-bs-dismiss="modal"]', (event) => {
-        // Ensure the event originated from a button inside THIS specific modal
-        if ($(event.currentTarget).closest(userModalElement).length) {
-          // Explicitly blur the active element (the clicked button)
-          if (document.activeElement) {
-            document.activeElement.blur();
-          }
-          // Bootstrap's data-bs-dismiss="modal" will handle the hide() call
-        }
+      // Set focus to the first input field when the modal is shown
+      $(userModalElement).on('shown.bs.modal', () => {
+        this.$modalName.focus();
       });
     }
 
+    /**
+     * Opens the user modal for adding a new user.
+     */
     openModalForAdd() {
-      this.$userModalLabel.text('Add User');
-      this.$modalName.val('');
-      this.userIdToEdit = null;
-      window.InputValidator.hideError(this.$modalName, this.$modalNameError);
-      this.lastFocusedElement = $('#triggerButton')[0]; // Store the Add User button as the last focused element
-      this.userModalInstance.show(); // Explicitly show modal here
+      this.userIdToEdit = null; // Ensure ID is null for add mode
+      this.$userModalLabel.text('Add User'); // Set modal title
+      this.$modalName.val(''); // Clear form field
+      window.InputValidator.hideError(this.$modalName, this.$modalNameError); // Use InputValidator to hide error
+
+      this.saveScrollAndDisableScroll(); // Save scroll and disable body scroll
+      this.userModalInstance.show(); // Show the modal
     }
 
-    async openModalForEdit(userId, triggeringElement) {
+    /**
+     * Opens the user modal for editing an existing user.
+     * @param {number} userId - The ID of the user to edit.
+     * @param {HTMLElement} [triggeringElement=null] - The DOM element that triggered the modal opening.
+     */
+    async openModalForEdit(userId, triggeringElement = null) {
+      this.userIdToEdit = userId; // Store the ID of the user being edited
+      this.$userModalLabel.text('Edit User'); // Set modal title
+      window.InputValidator.hideError(this.$modalName, this.$modalNameError); // Use InputValidator to hide error
+
+      // Store the element that triggered the modal
+      this.lastFocusedElement = triggeringElement;
+
+      this.saveScrollAndDisableScroll(); // Save scroll and disable body scroll
+
       try {
-        const user = await window.Api.fetchUser(userId);
-
-        this.userIdToEdit = userId;
-        this.$userModalLabel.text('Edit User');
-        this.$modalName.val(user.name);
-        window.InputValidator.hideError(this.$modalName, this.$modalNameError);
-        this.lastFocusedElement = triggeringElement; // Store the specific edit button
-
-        this.userModalInstance.show(); // Explicitly show modal here
+        const user = await window.Api.fetchUser(userId); // Fetch user data using global Api
+        this.$modalName.val(user.name); // Populate form field
+        this.userModalInstance.show(); // Show the modal
       } catch (error) {
-        console.error('Failed to fetch user for edit:', error);
-        window.showUserFeedback('Failed to load user data for editing. Please try again later.', 'danger');
+        console.error('Failed to fetch user for editing: ', error);
+        window.showUserFeedback('Failed to load user data. Please try again later.', 'danger');
+        this.userModalInstance.hide(); // Hide modal if data fetch fails
       }
     }
 
-    handleNameInput() {
-      const userName = this.$modalName.val().trim();
-      window.InputValidator.validateName(userName, window.showUserFeedback, this.$modalName, this.$modalNameError);
+    /**
+     * Saves the current scroll position and disables body scrolling.
+     */
+    saveScrollAndDisableScroll() {
+      this.scrollPosition = window.scrollY || document.documentElement.scrollTop;
+      document.documentElement.style.overflow = 'hidden'; // Disable scroll on html
+      document.body.style.overflow = 'hidden'; // Disable scroll on body (for consistency)
     }
 
-    async saveUser() {
-      const userName = this.$modalName.val().trim();
-
-      const isNameValid = window.InputValidator.validateName(userName, window.showUserFeedback, this.$modalName, this.$modalNameError);
-
-      if (!isNameValid) {
-        return;
+    /**
+     * Handles saving the user (add or edit).
+     */
+    async handleSaveUser() {
+      const name = this.$modalName.val();
+      if (!window.InputValidator.validateName(name, window.showUserFeedback, this.$modalName, this.$modalNameError)) {
+        return; // Stop if form is not valid
       }
 
-      const user = {
-        name: userName
+      const userData = {
+        name: name.trim()
       };
 
       try {
-        const responseData = await window.Api.saveUser(user, this.userIdToEdit);
+        const responseData = await window.Api.saveUser(userData, this.userIdToEdit); // Use window.Api
 
-        // Explicitly blur the save button before hiding the modal to prevent focus retention issues.
+        // Blur the active element within the modal before hiding it, if any
         if (document.activeElement) {
           document.activeElement.blur();
         }

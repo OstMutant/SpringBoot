@@ -1,74 +1,15 @@
 (function() {
+  // Access BaseTableRenderer from window (assuming utils.js is loaded first)
+  const BaseTableRenderer = window.BaseTableRenderer;
+
   /**
    * Class responsible for rendering the user table and pagination controls.
    */
-  class UserTableRenderer {
+  class UserTableRenderer extends BaseTableRenderer { // Extend BaseTableRenderer
     constructor($tableBody, $paginationInfo, $paginationList, $tableHeaders, pageSize) {
+      super($paginationInfo, $paginationList, pageSize); // Call parent constructor
       this.$tableBody = $tableBody;
-      this.$paginationInfo = $paginationInfo;
-      this.$paginationList = $paginationList;
       this.$tableHeaders = $tableHeaders;
-      this.pageSize = pageSize;
-    }
-
-    /**
-     * Updates pagination information text.
-     * @param {number} totalItems - Total number of items.
-     * @param {number} currentPage - Current page index.
-     * @param {number} totalPages - Total number of pages.
-     */
-    updatePaginationInfo(totalItems, currentPage, totalPages) {
-      if (totalItems === 0) {
-        this.$paginationInfo.text('No items found.');
-      } else {
-        const startItem = currentPage * this.pageSize + 1;
-        const endItem = Math.min(startItem + this.pageSize - 1, totalItems);
-        this.$paginationInfo.text(`Items ${startItem}-${endItem} of ${totalItems} (Page ${currentPage + 1} of ${totalPages})`);
-      }
-    }
-
-    /**
-     * Renders pagination controls dynamically.
-     * @param {number} totalItems - Total number of items (added parameter)
-     * @param {number} currentPage - Current page index.
-     * @param {number} totalPages - Total number of pages.
-     */
-    renderPaginationControls(totalItems, currentPage, totalPages) {
-      this.$paginationList.empty();
-
-      if (totalPages <= 1) {
-        this.updatePaginationInfo(totalItems, currentPage, totalPages); // Use passed totalItems
-        return;
-      }
-
-      const prevDisabled = currentPage === 0 ? 'disabled' : '';
-      this.$paginationList.append(`
-        <li class="page-item ${prevDisabled}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
-                <span aria-hidden="true">&laquo;</span> <span class="sr-only">Previous</span>
-            </a>
-        </li>
-      `);
-
-      for (let i = 0; i < totalPages; i++) {
-        const activeClass = i === currentPage ? 'active' : '';
-        this.$paginationList.append(`
-          <li class="page-item ${activeClass}">
-              <a class="page-link" href="#" data-page="${i}">${i + 1}</a>
-          </li>
-        `);
-      }
-
-      const nextDisabled = currentPage >= totalPages - 1 ? 'disabled' : '';
-      this.$paginationList.append(`
-        <li class="page-item ${nextDisabled}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
-                <span aria-hidden="true">&raquo;</span> <span class="sr-only">Next</span>
-            </a>
-        </li>
-      `);
-
-      this.updatePaginationInfo(totalItems, currentPage, totalPages); // Use passed totalItems
     }
 
     /**
@@ -226,22 +167,25 @@
       );
 
       // Instantiate UserFilterService instead of generic FilterService
-      this.filterService = new window.UserFilterService(
-        this.$startId,
-        this.$endId,
-        this.$filterName,
-        this.$filterCreatedAtStart,
-        this.$filterCreatedAtEnd,
-        this.$filterUpdatedAtStart,
-        this.$filterUpdatedAtEnd
-      );
+      // Using window.Filters directly as it's an IIFE that returns an object, not a constructor
+      this.filterService = window.Filters;
 
-      // NO initial loadUsers(0) call here anymore.
-      // Loading will be triggered by Bootstrap tab 'shown.bs.tab' event or explicit button click.
+      // NEW: Property to hold the current Oboe.js request
+      this.currentOboeRequest = null;
 
       this.$loadButton.on('click', this.loadUsers.bind(this, 0));
       this.$clearFiltersButton.on('click', this.clearFilters.bind(this));
-      this.$paginationList.on('click', '.page-link', this.handlePaginationClick.bind(this));
+      this.$paginationList.on('click', '.page-link', (event) => {
+        event.preventDefault();
+        const $clickedLink = $(event.currentTarget);
+        const $parentItem = $clickedLink.closest('.page-item');
+        if (!$parentItem.hasClass('disabled') && !$parentItem.hasClass('active')) {
+          const targetPage = parseInt($clickedLink.data('page'));
+          // Pass this.loadUsers as a callback for page change
+          this.renderer.renderPaginationControls(this.totalItems, targetPage, this.totalPages, this.loadUsers.bind(this));
+          this.loadUsers(targetPage);
+        }
+      });
 
       window.EventBus.on('user:added', this.handleUserUpdateEvent.bind(this));
       window.EventBus.on('user:updated', this.handleUserUpdateEvent.bind(this));
@@ -253,10 +197,8 @@
       this.$tableHead.on('click', 'th[data-sort-field]', this.handleSortHeaderClick.bind(this));
 
 
-      this.$filterCreatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtStart, this.$filterCreatedAtEnd, 'max', 'min'));
-      this.$filterCreatedAtEnd.on('change', this.handleDateFilterChange.bind(this, this.$filterCreatedAtEnd, this.$filterCreatedAtStart, 'min', 'max'));
-      this.$filterUpdatedAtStart.on('change', this.handleDateFilterChange.bind(this, this.$filterUpdatedAtStart, this.$filterUpdatedAtEnd, 'max', 'min'));
-      this.$filterUpdatedAtEnd.on('change', this.handleDateFilterChange.bind(this, this.$filterUpdatedAtEnd, this.$filterUpdatedAtStart, 'min', 'max'));
+      window.setupDateRangeValidation(this.$filterCreatedAtStart, this.$filterCreatedAtEnd);
+      window.setupDateRangeValidation(this.$filterUpdatedAtStart, this.$filterUpdatedAtEnd);
 
       this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
 
@@ -278,15 +220,6 @@
       if ($('#settings-tab').hasClass('active')) {
         console.log('Settings tab is initially active, loading users...');
         this.loadUsers(0);
-      }
-    }
-
-    handleDateFilterChange($changedInput, $targetInput, changedAttr, targetAttr) {
-      const value = $changedInput.val();
-      if (value) {
-        $targetInput.attr(targetAttr, value);
-      } else {
-        $targetInput.removeAttr(targetAttr);
       }
     }
 
@@ -312,12 +245,11 @@
 
       this.renderer.setLoadingState(true);
 
-      // FIX: Changed getUserFilterValues to getFilterValues
-      const filterValues = this.filterService.getFilterValues();
+      const filterValues = this.filterService.getUserFilterValues();
 
       if (!window.InputValidator.validateUserFilters(filterValues, this.showError)) {
         this.stopLoading();
-        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages, this.loadUsers.bind(this));
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         this.renderer.setLoadingState(false);
         return;
@@ -347,7 +279,7 @@
 
       if (formattedFilterValues.startId !== null) queryParams.startId = formattedFilterValues.startId;
       if (formattedFilterValues.endId !== null) queryParams.endId = formattedFilterValues.endId;
-      if (formattedFilterValues.nameFilter) queryParams.nameFilter = formattedFilterValues.nameFilter;
+      if (formattedFilterValues.name) queryParams.nameFilter = formattedFilterValues.name; // Use 'name' from filters and map to 'nameFilter'
       if (formattedFilterValues.createdAtStart) queryParams.createdAtStart = formattedFilterValues.createdAtStart;
       if (formattedFilterValues.createdAtEnd) queryParams.createdAtEnd = formattedFilterValues.createdAtEnd;
       if (formattedFilterValues.updatedAtStart) queryParams.updatedAtStart = formattedFilterValues.updatedAtStart;
@@ -356,7 +288,13 @@
       const url = `${window.GlobalConfig.userApiBaseUrl}?${new URLSearchParams(queryParams).toString()}`; // Use userApiBaseUrl
 
 
-      oboe({
+      // NEW: Abort any previous active request to prevent duplicates
+      if (this.currentOboeRequest) {
+        this.currentOboeRequest.abort();
+        console.log('Aborted previous Oboe request for /users');
+      }
+
+      this.currentOboeRequest = oboe({
         url: url,
         method: 'GET'
       })
@@ -373,7 +311,9 @@
           this.totalItems = record.value.totalItems;
           this.totalPages = Math.ceil(this.totalItems / window.GlobalConfig.pagination.pageSize);
           this.currentPage = record.value.currentPage;
-          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
+          // IMPORTANT: Call updatePaginationInfo here when pagination metadata is received
+          this.renderer.updatePaginationInfo(this.totalItems, this.currentPage, this.totalPages);
+          this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages, this.loadUsers.bind(this));
 
           console.log('Received Pagination Metadata:', record.value);
         } else if (record.type === 'done') {
@@ -388,7 +328,10 @@
         this.renderer.setLoadingState(false);
         if (this.totalItems === 0) {
           this.renderer.clearTableBody();
+          this.renderer.appendRow('<tr><td colspan="5" class="text-center">No users found.</td></tr>');
         }
+        // NEW: Clear the reference to the current Oboe request
+        this.currentOboeRequest = null;
       })
         .fail((error) => {
         console.error('Stream failed:', error);
@@ -416,21 +359,25 @@
         this.totalItems = 0;
         this.totalPages = 0;
         this.currentPage = 0;
-        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages);
+        this.renderer.updatePaginationInfo(this.totalItems, this.currentPage, this.totalPages); // Ensure info is cleared/reset on error
+        this.renderer.renderPaginationControls(this.totalItems, this.currentPage, this.totalPages, this.loadUsers.bind(this));
         this.renderer.updateSortIndicators(this.currentSortField, this.currentSortDirection);
         this.renderer.setLoadingState(false);
         this.renderer.clearTableBody();
+        this.renderer.appendRow('<tr><td colspan="5" class="text-center">Error loading users.</td></tr>');
+        // NEW: Clear the reference to the current Oboe request
+        this.currentOboeRequest = null;
       });
     }
 
     clearFilters() {
-      // Call clearUserFilterFields on UserFilterService instance
-      if (!this.filterService.hasActiveFilter()) { // Corrected method name
+      // Call clearUserFilterFields on Filters object
+      if (!this.filterService.hasActiveUserFilters()) {
         console.log('No active filters to clear.');
         return;
       }
 
-      this.filterService.clearFilterFields(); // Corrected method name
+      this.filterService.clearUserFilterFields();
       this.loadUsers(0);
     }
 
@@ -501,6 +448,9 @@
   }
 
   $(document).ready(() => {
-    new UserListTable();
+    // Check if the userList fragment is present on the page
+    if ($('#userList').length) {
+      new UserListTable();
+    }
   });
 })();
